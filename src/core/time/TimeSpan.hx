@@ -5,7 +5,7 @@ import haxe.Int64;
 /**
  *  Represents a time interval.
  *  Initializes with the specified period.
- *  
+ *
  *  Create TimeSpan
  *  ```
  *  var timestamp = new TimeStamp({
@@ -13,7 +13,7 @@ import haxe.Int64;
  *  });
  *  trace(timestamp.totalSeconds);  => 86400
  *  ```
- *  
+ *
  *  Add one TimeSpan to another
  *  ```
  *  var timestamp1 = new TimeStamp({
@@ -34,6 +34,15 @@ abstract TimeSpan(__TimeSpan) {
 	 */
 	public function new(value:TimeSpanParameters) {
 		this = new __TimeSpan(value);
+	}
+
+	/**
+	 * Compare type with __TimeSpan
+	 * @param v - some type
+	 * @return Bool
+	 */
+	public static inline function is(v:Dynamic):Bool {
+		return Std.is(v, __TimeSpan);
 	}
 
 	/**

@@ -73,4 +73,14 @@ class TimeSpanCase {
 
         Assert.equals(totalSpan.totalSeconds, equalsSpan.totalSeconds);
     }
+
+    /**
+	 *  Test is TimeSpan function
+	 */
+	public function testIsTimeSpan() {
+        var timespan1 = new TimeSpan({
+            days: 3
+        });
+        Assert.equals(TimeSpan.is(timespan1), true);
+    }
 }
