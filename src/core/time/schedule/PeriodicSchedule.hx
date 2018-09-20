@@ -5,10 +5,22 @@ package core.time.schedule;
  */
 class PeriodicSchedule implements ISchedule {
     /**
-     * Return next start
-     * @return TimeSpan
+     *  Offset date
      */
-    public function nextStart() : TimeSpan {
-        return null;
+    public final offset : Date;
+
+	/**
+	 *  Constructor
+	 */
+	public function new(offset : Date, period : TimeSpan) {
+        this.offset = offset;
     }
+
+	/**
+	 * Return next start
+	 * @return TimeSpan
+	 */
+	public function nextStart():TimeSpan {
+		return null;
+	}
 }
