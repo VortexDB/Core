@@ -6,6 +6,10 @@ import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
 
 /**
+ * Referrence https://gist.github.com/Botffy/3860641
+ */
+
+/**
  * On client accept callback
  */
 typedef OnAcceptCall = (Void) -> Void;
