@@ -1,0 +1,13 @@
+{
+  "name": "Core",
+  "url" : "https://github.com/VortexDB/Core",
+  "license": "MIT",
+  "tags": ["java", "core"],
+  "description": "Core for haxe server apps",
+  "version": "1.0.0",
+  "classPath": "src/",
+  "releasenote": "First release",
+  "contributors": ["Grabli66"],
+  "dependencies": {
+  }
+}
