@@ -60,7 +60,7 @@ abstract TimeSpan(__TimeSpan) {
 }
 
 /**
- *  Parameters for constructor in TimeSpan
+ * Parameters for constructor in TimeSpan
  */
 typedef TimeSpanParameters = {
 	@:optional var days:Int;
@@ -71,34 +71,39 @@ typedef TimeSpanParameters = {
 }
 
 /**
- *  Internal realization
+ * Internal realization
  */
 @:keep
 class __TimeSpan {
 	/**
-	 *  For calculating Float from Int64
+	 * For calculating Float from Int64
 	 */
 	private inline static var MAX_32_PRECISION = 4294967296;
 
 	/**
-	 *  Seconds per minute
+	 * Seconds per minute
 	 */
 	private inline static var SECONDS_PER_MINUTE = 60;
 
 	/**
-	 *  Seconds per hour
+	 * Seconds per hour
 	 */
 	private inline static var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
 
 	/**
-	 *  Seconds per day
+	 * Seconds per day
 	 */
 	private inline static var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
 
 	/**
-	 *  Nanoseconds count in one second
+	 * Nanoseconds count in one second
 	 */
 	public static inline var NANOSECONDS_PER_SECOND = 1000000000;
+
+	/**
+	 * Milliseconds count in one second
+	 */
+	public static inline var MILLISECONDS_PER_SECOND = 1000;
 
 	/**
 	 *  Total seconds of interval. Integer part
@@ -137,6 +142,14 @@ class __TimeSpan {
 
 	private function get_totalSeconds():Float {
 		return toFloat(seconds) + nanoseconds / NANOSECONDS_PER_SECOND;
+	}
+
+	/**
+	 * Return total milliseconds
+	 */
+	public var totalMilliseconds(get, never):Float;
+	private function get_totalMilliseconds():Float {
+		return totalSeconds * MILLISECONDS_PER_SECOND;
 	}
 
 	/**
