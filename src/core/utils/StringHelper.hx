@@ -16,7 +16,7 @@ class StringHelper {
 		if (value == null)
 			return 0;
 
-        var bytes = Bytes.ofString(value);
-        return Adler32.make(bytes);		
+		var bytes = Bytes.ofString(value);
+		return Adler32.make(bytes);
 	}
 }
