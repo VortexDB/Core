@@ -1,6 +1,7 @@
 package core.io;
 
 import java.net.InetSocketAddress;
+import java.nio.channels.SocketChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
@@ -47,13 +48,21 @@ class TcpListener {
 	 * Handle accept from server socket
 	 * @param key
 	 */
-	private function handleAccept(key:SelectionKey) {}
+	private function handleAccept(key:SelectionKey) {
+		var server = cast(key.channel(), ServerSocketChannel);
+		var clientChannel = server.accept();		
+		clientChannel.configureBlocking(false);
+		clientChannel.register(selector, SelectionKey.OP_READ, null);
+	}
 
 	/**
 	 * Handle read from client socket
 	 * @param key
 	 */
-	private function handleRead(key:SelectionKey) {}
+	private function handleRead(key:SelectionKey) {
+		var clientChannel = cast(key.channel(), SocketChannel);
+		
+	}
 
 	/**
 	 * Constructor
