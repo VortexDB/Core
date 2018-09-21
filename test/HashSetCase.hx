@@ -85,4 +85,21 @@ class HashSetCase {
         hashSet.clear();
         Assert.equals(hashSet.length, 0);
     }
+
+    /**
+	 * Test iterator
+	 */
+	public function testIterator() {
+        var hashSet = new HashSet<User>();
+        var user1 = new User("Batman");
+        var user2 = new User("Superman");
+        hashSet.add(user1);
+        hashSet.add(user2);
+        var res = "";
+        for (user in hashSet) {
+            res += user.name;
+        }
+
+        Assert.equals(res, "Batman" + "Superman");
+    }
 }

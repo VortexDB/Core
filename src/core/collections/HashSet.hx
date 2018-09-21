@@ -79,4 +79,12 @@ class HashSet<T:HashKey> {
         internalHashSet.clear();
         items.resize(0);
     }
+
+    /**
+     * Returns iterator fo hash set
+     * @return Iterator<T>
+     */
+    public function iterator() : Iterator<T> {
+        return items.iterator();
+    }
 }
