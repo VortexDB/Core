@@ -12,7 +12,7 @@ class StringHelper {
 	 * @param value
 	 * @return Int
 	 */
-	public static function hash(value:String):Int {
+	public static function hashCode(value:String):Int {
 		if (value == null)
 			return 0;
 

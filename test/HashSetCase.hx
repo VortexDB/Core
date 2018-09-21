@@ -25,7 +25,7 @@ class User {
 	 * Calc hash code
 	 */
 	public function hashCode() {
-		return name.hash();
+		return name.hashCode();
 	}
 
 	/**
