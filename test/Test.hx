@@ -11,6 +11,7 @@ class Test {
 		var runner = new Runner();
 		runner.addCase(new TimeSpanCase());
 		runner.addCase(new TcpListenerCase());
+		runner.addCase(new HashSetCase());
 		Report.create(runner);
 		runner.run();
 	}
