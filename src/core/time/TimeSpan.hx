@@ -73,37 +73,11 @@ typedef TimeSpanParameters = {
 /**
  * Internal realization
  */
-@:keep
 class __TimeSpan {
 	/**
 	 * For calculating Float from Int64
 	 */
-	private inline static var MAX_32_PRECISION = 4294967296;
-
-	/**
-	 * Seconds per minute
-	 */
-	private inline static var SECONDS_PER_MINUTE = 60;
-
-	/**
-	 * Seconds per hour
-	 */
-	private inline static var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
-
-	/**
-	 * Seconds per day
-	 */
-	private inline static var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
-
-	/**
-	 * Nanoseconds count in one second
-	 */
-	public static inline var NANOSECONDS_PER_SECOND = 1000000000;
-
-	/**
-	 * Milliseconds count in one second
-	 */
-	public static inline var MILLISECONDS_PER_SECOND = 1000;
+	public static inline var MAX_32_PRECISION = 4294967296;
 
 	/**
 	 *  Total seconds of interval. Integer part
@@ -123,7 +97,7 @@ class __TimeSpan {
 	public var totalDays(get, never):Float;
 
 	private function get_totalDays():Float {
-		return totalSeconds / SECONDS_PER_DAY;
+		return totalSeconds / DateTime.SECONDS_PER_DAY;
 	}
 
 	/**
@@ -132,7 +106,7 @@ class __TimeSpan {
 	public var totalHours(get, never):Float;
 
 	private function get_totalHours():Float {
-		return totalSeconds / SECONDS_PER_HOUR;
+		return totalSeconds / DateTime.SECONDS_PER_HOUR;
 	}
 
 	/**
@@ -141,15 +115,16 @@ class __TimeSpan {
 	public var totalSeconds(get, never):Float;
 
 	private function get_totalSeconds():Float {
-		return toFloat(seconds) + nanoseconds / NANOSECONDS_PER_SECOND;
+		return toFloat(seconds) + nanoseconds / DateTime.NANOSECONDS_PER_SECOND;
 	}
 
 	/**
 	 * Return total milliseconds
 	 */
 	public var totalMilliseconds(get, never):Float;
+
 	private function get_totalMilliseconds():Float {
-		return totalSeconds * MILLISECONDS_PER_SECOND;
+		return totalSeconds * DateTime.MILLISECONDS_PER_SECOND;
 	}
 
 	/**
@@ -170,13 +145,13 @@ class __TimeSpan {
 	 * @return Int64
 	 */
 	private static function computeSeconds(days:Int, hours:Int, minutes:Int, seconds:Int):Int64 {
-		var hrssec = hours * SECONDS_PER_HOUR;
-		var minsec = minutes * SECONDS_PER_MINUTE;
+		var hrssec = hours * DateTime.SECONDS_PER_HOUR;
+		var minsec = minutes * DateTime.SECONDS_PER_MINUTE;
 		var secs:Int64 = hrssec + minsec + seconds;
 		var overflow = false;
 
 		if (days > 0) {
-			var sd:Int64 = SECONDS_PER_DAY * days;
+			var sd:Int64 = DateTime.SECONDS_PER_DAY * days;
 			if (sd < days) {
 				overflow = true;
 			} else if (secs < 0) {
@@ -188,7 +163,7 @@ class __TimeSpan {
 				overflow = secs < 0;
 			}
 		} else if (days < 0) {
-			var sd:Int64 = SECONDS_PER_DAY * days;
+			var sd:Int64 = DateTime.SECONDS_PER_DAY * days;
 			if (sd > days) {
 				overflow = true;
 			} else if (secs <= 0) {

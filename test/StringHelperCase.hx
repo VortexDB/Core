@@ -18,7 +18,6 @@ class StringHelperCase {
 	public function testHashCode() {
         var str = "Batman";
         var hash = str.hashCode();
-        trace(hash);
         Assert.equals(hash, 129892948);
     }
 }
