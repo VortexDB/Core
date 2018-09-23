@@ -27,7 +27,7 @@ import haxe.Int64;
  *  ```
  */
 @:forward
-abstract TimeSpan(__TimeSpan) {
+abstract TimeSpan(__TimeSpan) from __TimeSpan to __TimeSpan {
 	/**
 	 * Constructor
 	 * @param value

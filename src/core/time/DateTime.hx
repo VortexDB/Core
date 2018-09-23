@@ -8,7 +8,7 @@ import java.time.ZoneId;
  * DateTime
  * TODO: cross-platform, works now only on java
  */
-abstract DateTime(LocalDateTime) {
+abstract DateTime(LocalDateTime) from LocalDateTime to LocalDateTime {
 	/**
 	 * Seconds per week
 	 */
@@ -60,6 +60,33 @@ abstract DateTime(LocalDateTime) {
 	}
 
 	/**
+	 * Return year
+	 */
+	public var year(get, never):Int;
+
+	private function get_year():Int {
+		return this.getYear();
+	}
+
+	/**
+	 * Return month
+	 */
+	public var month(get, never):Int;
+
+	private function get_month():Int {
+		return this.getMonthValue();
+	}
+
+	/**
+	 * Return day of the month
+	 */
+	public var day(get, never):Int;
+
+	private function get_day():Int {
+		return this.getDayOfMonth();
+	}
+
+	/**
 	 * Checks type equality
 	 * @param v
 	 */
@@ -73,5 +100,18 @@ abstract DateTime(LocalDateTime) {
 	 */
 	public static function now():DateTime {
 		return cast LocalDateTime.now();
+	}
+
+	/**
+	 * Add one TimeSpan to another TimeSpan
+	 * @param a
+	 * @param b
+	 * @return Int64
+	 */
+	@:op(A + B) public static inline function add(a:DateTime, b:TimeSpan):DateTime {
+		var local:LocalDateTime = cast a;
+		var nlocal = local.plusSeconds(b.totalSeconds);
+		nlocal = nlocal.plusNanos(b.nanoseconds);
+		return nlocal;
 	}
 }
