@@ -69,12 +69,39 @@ abstract DateTime(LocalDateTime) from LocalDateTime to LocalDateTime {
 	}
 
 	/**
-	 * Return month
+	 * Return month (1-12)
 	 */
 	public var month(get, never):Int;
 
 	private function get_month():Int {
 		return this.getMonthValue();
+	}
+
+	/**
+	 * Return hour (0-23)
+	 */
+	public var hour(get, never):Int;
+
+	private function get_hour():Int {
+		return this.getHour();
+	}
+
+	/**
+	 * Return minute (0-59)
+	 */
+	public var minute(get, never):Int;
+
+	private function get_minute():Int {
+		return this.getMinute();
+	}
+
+	/**
+	 * Return second (0-59)
+	 */
+	public var second(get, never):Int;
+
+	private function get_second():Int {
+		return this.getSecond();
 	}
 
 	/**
@@ -113,5 +140,12 @@ abstract DateTime(LocalDateTime) from LocalDateTime to LocalDateTime {
 		var nlocal = local.plusSeconds(b.totalSeconds);
 		nlocal = nlocal.plusNanos(b.nanoseconds);
 		return nlocal;
+	}
+
+	/**
+	 * Constructor
+	 */
+	public function new(year:Int, month:Int, day:Int, hour:Int = 0, minute:Int = 0, second:Int = 0) {
+		this = LocalDateTime.of(year, month, day, hour, minute, second);
 	}
 }
