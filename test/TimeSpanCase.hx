@@ -1,5 +1,6 @@
 package test;
 
+import core.time.DateTime;
 import utest.Assert;
 import core.time.TimeSpan;
 
@@ -34,6 +35,18 @@ class TimeSpanCase {
 			seconds: 42
 		});
 		Assert.equals(1 * 86400 + 3 * 3600 + 33 * 60 + 42, timespan.totalSeconds);
+	}
+
+	/**
+	 *  Test total minutes
+	 */
+	public function testTotalMinutes() {
+		var timespan = new TimeSpan({
+			days: 1,
+			hours: 3
+		});
+		var res = Math.floor((1 * DateTime.SECONDS_PER_DAY + 3 * DateTime.SECONDS_PER_HOUR) / DateTime.SECONDS_PER_MINUTE);
+		Assert.equals(res, timespan.totalMinutes);
 	}
 
 	/**

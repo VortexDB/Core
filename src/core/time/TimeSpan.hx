@@ -110,6 +110,15 @@ class __TimeSpan {
 	}
 
 	/**
+	 * Gets the value of the current TimeSpan structure expressed in whole and fractional minutes.
+	 */
+	public var totalMinutes(get, never):Float;
+
+	private function get_totalMinutes():Float {
+		return totalSeconds / DateTime.SECONDS_PER_MINUTE;
+	}
+
+	/**
 	 * Gets the value of the current TimeSpan structure expressed in whole and fractional seconds.
 	 */
 	public var totalSeconds(get, never):Float;

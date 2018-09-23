@@ -41,4 +41,14 @@ class DateTimeCase {
 		Assert.equals(res.minute, 21);
 		Assert.equals(res.second, 55);
 	}
+
+	/**
+	 * Test DateTime - DateTime
+	 */
+	public function testBetween() {
+		var d1 = new DateTime(2018, 9, 23);
+		var d2 = new DateTime(2018, 9, 11);
+		var res = d1 - d2;		
+		Assert.equals(res.totalDays, 12);
+	}
 }

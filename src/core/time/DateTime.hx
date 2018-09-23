@@ -2,6 +2,7 @@ package core.time;
 
 import haxe.Int64;
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.time.ZoneId;
 
 /**
@@ -135,11 +136,29 @@ abstract DateTime(LocalDateTime) from LocalDateTime to LocalDateTime {
 	 * @param b
 	 * @return Int64
 	 */
-	@:op(A + B) public static inline function add(a:DateTime, b:TimeSpan):DateTime {
+	@:op(A + B) public static inline function addTimespan(a:DateTime, b:TimeSpan):DateTime {
 		var local:LocalDateTime = cast a;
 		var nlocal = local.plusSeconds(b.totalSeconds);
 		nlocal = nlocal.plusNanos(b.nanoseconds);
 		return nlocal;
+	}
+
+	/**
+	 * DateTime - DateTime = TimeSpan
+	 * TODO: remake. It's slow
+	 * @param a
+	 * @param b
+	 * @return Int64
+	 */
+	@:op(A - B) public static inline function between(a:DateTime, b:DateTime):TimeSpan {
+		var duration = Duration.between(b, a);
+		// TODO: seconds Int64
+		var timespan = new TimeSpan({
+			seconds: Int64.toInt(duration.getSeconds()),
+			nanoseconds: duration.getNano()
+		});
+
+		return timespan;
 	}
 
 	/**
