@@ -30,9 +30,9 @@ class IterableHelper {
 	}
 
 	/**
-	 * 
+	 * Check iterable items type and filter them to stay only items of type T
 	 * @param a 
-	 * @return Iterable<U>
+	 * @return Array<T>
 	 */
 	public static function ofType<T, U>(a:Iterable<U>, c:Class<T>):Array<T> {
 		var res = new Array<T>(); 
