@@ -28,4 +28,19 @@ class IterableHelper {
 		}
 		return map;
 	}
+
+	/**
+	 * 
+	 * @param a 
+	 * @return Iterable<U>
+	 */
+	public static function ofType<T, U>(a:Iterable<U>, c:Class<T>):Array<T> {
+		var res = new Array<T>(); 
+        for (item in a) {             
+             if (Std.is(item, c)) {
+                 res.push(cast item);
+             }
+        }
+        return res;
+	}
 }
