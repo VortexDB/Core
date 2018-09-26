@@ -123,4 +123,11 @@ class SerialPort {
 		port.openPort();
 		port.addDataListener(new InternalSerialPortDataListener(this));
 	}
+
+    /**
+     * Close port
+     */
+    public function close() {
+        port.closePort();
+    }
 }
