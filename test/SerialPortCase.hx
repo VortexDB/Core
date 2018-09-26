@@ -1,7 +1,7 @@
 package test;
 
 import utest.Assert;
-import core.io.SerialPort;
+import core.io.port.SerialPort;
 
 /**
  * For testing SerialPort
