@@ -3,4 +3,5 @@
 -lib utest
 -main test.Test
 -java out/java
+-java-lib libs/jSerialComm-2.1.1.jar
 -cmd java -jar out/java/Test.jar
