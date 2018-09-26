@@ -68,6 +68,16 @@ class InternalSerialPortDataListener implements com.fazecast.jSerialComm.SerialP
  */
 @:allow(core.io.InternalSerialPortDataListener)
 class SerialPort {
+    /**
+     * Timeout on read bytes in milliseconds
+     */
+    public static inline var READ_TIMEOUT = 100;
+
+    /**
+     * Timeout on read bytes in milliseconds
+     */
+    public static inline var WRITE_TIMEOUT = 100;
+
 	/**
 	 * Native serial port
 	 */    
@@ -111,7 +121,9 @@ class SerialPort {
      */
     public function write(data:Bytes) {
         var bytes = data.getData();
-        port.writeBytes(bytes, 0, bytes.length);
+        var stream = port.getOutputStream();
+        stream.write(bytes);
+        stream.flush();
     }
 
 	/**
@@ -120,15 +132,18 @@ class SerialPort {
 	public function open() {
 		if (port.isOpen())
 			return;
-
+                
+        port.setComPortTimeouts(NativePort.TIMEOUT_READ_SEMI_BLOCKING, READ_TIMEOUT, 0);
+        port.setComPortTimeouts(NativePort.TIMEOUT_WRITE_SEMI_BLOCKING, WRITE_TIMEOUT, 0);
+        port.addDataListener(new InternalSerialPortDataListener(this));
 		port.openPort();
-		port.addDataListener(new InternalSerialPortDataListener(this));
 	}
 
     /**
      * Close port
      */
     public function close() {
+        port.removeDataListener();
         port.closePort();
     }
 }
