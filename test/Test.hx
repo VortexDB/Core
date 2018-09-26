@@ -15,7 +15,8 @@ class Test {
 		runner.addCase(new TimeSpanCase());
 		runner.addCase(new PeriodicScheduleCase());
 		runner.addCase(new TcpListenerCase());
-		runner.addCase(new HashSetCase());		
+		runner.addCase(new HashSetCase());
+		runner.addCase(new SerialPortCase());	
 		Report.create(runner);
 		runner.run();
 	}

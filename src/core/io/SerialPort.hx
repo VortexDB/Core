@@ -89,6 +89,7 @@ class SerialPort {
 	 * @return Array<String>
 	 */
 	public static function getPorts():Array<String> {
+        // TODO: make better convert native array to array
 		var res = new Array<String>();
 		for (item in NativePort.getCommPorts())
 			res.push(item.getSystemPortName());
