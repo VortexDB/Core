@@ -104,6 +104,15 @@ class SerialPort {
 		port = NativePort.getCommPort(name);
 	}
 
+    /**
+     * Write data to port
+     * @param data 
+     */
+    public function write(data:Bytes) {
+        var bytes = data.getData();
+        port.writeBytes(bytes, 0, bytes.length);
+    }
+
 	/**
 	 * Open serial port
 	 */
@@ -112,6 +121,6 @@ class SerialPort {
 			return;
 
 		port.openPort();
-		port.addDataListener(new InternalSerialPortDataListener());
+		port.addDataListener(new InternalSerialPortDataListener(this));
 	}
 }
