@@ -87,4 +87,19 @@ class FutureCase {
         var res = Future.waitAll([future1, future2, future3]);
         Assert.equals(res.length, 3);
     }
+
+	/**
+     * Test nested wait
+     */
+    public function testNestedWait() {
+		var future1 = new Future(() -> {
+			var future2 = new Future(() -> {
+				return 44;
+			});
+			return future2.wait();
+		});
+
+		var res = future1.wait();
+		Assert.equals(res, 44);
+	}
 }
