@@ -1,21 +1,10 @@
 package core.async;
 
-import haxe.macro.Expr.Catch;
-import haxe.Timer;
-
-/**
- * Callback on success execution of Future
- */
-typedef OnSuccessCall<T> = (result:T) -> Void;
-
-/**
- * Callback on error
- */
-typedef OnErrorCall = (e:Dynamic) -> Void;
+import core.async.Waiter;
 
 /**
  * Async task with promise of result or error
- * TODO: remove haxe timers, use platform depended classes
+ * It's bad, it's slow. But it works
  */
 class Future<T> {
 	/**
@@ -24,44 +13,66 @@ class Future<T> {
 	private var result:T;
 
 	/**
-	 * Callback on success
+	 * For wait on complete
 	 */
-	private var onSuccessCall:OnSuccessCall<T>;
+	private final awaiter:Waiter;
 
 	/**
 	 * Callback on success
 	 */
-	private var onErrorCall:OnErrorCall;
+	private var onSuccessImp:(T) -> Void;
+
+    /**
+     * Is future complete
+     */
+    public var isComplete:Bool;
 
 	/**
-	 * Constructor
-	 * @param call 
-	 * @return -> T)
+	 * Wait all futures
+	 * @param futures
+	 * @return Iterable<T>
 	 */
-	public function new(call:() -> T) {
-		Timer.delay(function() {
-			try {
-				result = call();
-				if (onSuccessCall != null)
-					onSuccessCall(result);
-			} catch (e:Dynamic) {
-				if (onError != null)
-					onErrorCall(e);
-			}
-		}, 0);
+	public static function waitAll<T>(futures:Iterable<Future<T>>):Array<T> {
+		var res = new Array<T>();
+		for (fut in futures) {
+			res.push(fut.wait());
+		}
+		return res;
 	}
 
 	/**
-	 * Sets callback on success
-	 * @param call
-	 * @return -> Void)
+	 * Constructor
 	 */
-	public function onSuccess(call:OnSuccessCall<T>) {}
+	public function new(call:() -> T) {
+        isComplete = false;
+
+		awaiter = FutureExecuter.instance.execute(() -> {
+			result = call();
+            isComplete = true;
+			if (onSuccessImp != null) {				
+				onSuccessImp(result);
+			}
+		});
+	}
 
 	/**
-	 * Callback on error
-	 * @param call
-	 * @return -> Void)
+	 * Wait for execution or throw Exception
+	 * Throws TimeoutException on timeout
+	 * @return T
 	 */
-	public function onError(call:OnErrorCall) {}
+	public function wait(?timeout:Int):T {
+        // if (isComplete)
+        //     return result;
+
+		awaiter.wait();
+		return result;
+	}
+
+	/**
+	 * Set on success callback
+	 */
+	public function onSuccess(call:(T) -> Void) {        
+		onSuccessImp = call;
+        awaiter.wait();
+	}
 }
