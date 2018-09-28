@@ -1,26 +1,68 @@
 package core.async;
 
-import core.async.Waiter;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
+
+/**
+ * For future task
+ */
+class FutureCallable<T> implements Callable<T> {
+	/**
+	 * Function on call
+	 */
+	private final fn:() -> T;
+
+	/**
+	 * Call on success
+	 */
+	public var onSuccess:(T) -> Void;
+
+	/**
+	 * Constructor
+	 * @param fn 
+	 * @return -> T)
+	 */
+	public function new(fn : () -> T) {
+		this.fn = fn;
+	}
+
+	/**
+	 * Implementation of callable
+	 * @return T
+	 */
+	public function call():T {
+		var res = fn();
+		if (onSuccess != null)
+			onSuccess(res);
+		return res;
+	}
+}
 
 /**
  * Async task with promise of result or error
- * It's bad, it's slow. But it works
+ * TODO: crossplatform. Now it' only for java
  */
 class Future<T> {
+	/**
+	 * Executor of futures
+	 */
+	private static var executor = Executors.newCachedThreadPool();
+
+	/**
+	 * Native java task
+	 */
+	private var nativeTask:FutureTask<T>;
+
+	/**
+	 * Callbalble
+	 */
+	private var callable:FutureCallable<T>;
+
 	/**
 	 * Some result on success execution
 	 */
 	private var result:T;
-
-	/**
-	 * For wait on complete
-	 */
-	private final awaiter:Waiter;
-
-	/**
-	 * Callback on success
-	 */
-	private var onSuccessImp:(T) -> Void;
 
     /**
      * Is future complete
@@ -44,15 +86,9 @@ class Future<T> {
 	 * Constructor
 	 */
 	public function new(call:() -> T) {
-        isComplete = false;
-
-		awaiter = FutureExecuter.instance.execute(() -> {
-			result = call();
-            isComplete = true;
-			if (onSuccessImp != null) {				
-				onSuccessImp(result);
-			}
-		});
+		callable = new FutureCallable<T>(call);
+		nativeTask = new FutureTask<T>(callable);
+        executor.execute(nativeTask);
 	}
 
 	/**
@@ -61,18 +97,14 @@ class Future<T> {
 	 * @return T
 	 */
 	public function wait(?timeout:Int):T {
-        // if (isComplete)
-        //     return result;
-
-		awaiter.wait();
+		result = nativeTask.get();
 		return result;
 	}
 
 	/**
 	 * Set on success callback
 	 */
-	public function onSuccess(call:(T) -> Void) {        
-		onSuccessImp = call;
-        awaiter.wait();
+	public function onSuccess(call:(T) -> Void) {
+		callable.onSuccess = call;
 	}
 }

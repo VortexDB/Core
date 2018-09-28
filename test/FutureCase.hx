@@ -92,13 +92,14 @@ class FutureCase {
      * Test nested wait
      */
     public function testNestedWait() {
-		var future1 = new Future(() -> {
-			var future2 = new Future(() -> {
+		var future1 = new Future(() -> {			
+			var future2 = new Future(() -> {				
 				return 44;
-			});
-			return future2.wait();
+			});			
+			var v = future2.wait();
+			return v;
 		});
-
+		
 		var res = future1.wait();
 		Assert.equals(res, 44);
 	}
