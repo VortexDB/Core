@@ -84,12 +84,12 @@ class SerialPort {
     /**
      * Timeout on read bytes in milliseconds
      */
-    public static inline var READ_TIMEOUT = 1000;
+    public static inline var READ_TIMEOUT = 100;
 
     /**
      * Timeout on read bytes in milliseconds
      */
-    public static inline var WRITE_TIMEOUT = 1000;
+    public static inline var WRITE_TIMEOUT = 100;
 
 	/**
 	 * Native serial port
