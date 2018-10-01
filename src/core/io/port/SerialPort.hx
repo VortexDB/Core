@@ -187,7 +187,7 @@ class SerialPort {
 
 		port.setBaudRate(speed);
         port.addDataListener(new InternalSerialPortDataListener(this));
-		port.openPort();
+		port.openPort(0);
 	}
 
     /**
