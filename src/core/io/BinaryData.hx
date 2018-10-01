@@ -71,7 +71,7 @@ class BinaryData {
 	}
 
 	/**
-	 *  Append byte
+	 *  Append byte to the end of buffer
 	 *  @param data - byte
 	 */
 	public function addByte(data:Int) {
@@ -99,16 +99,26 @@ class BinaryData {
 	}
 
 	/**
-	 *  Constructor
+	 * Get byte by position
+	 * @param pos 
+	 * @return Int
 	 */
-	public function new() {
-		size = 0;
-		length = 0;
-		resize(INCREMENT_SIZE);
+	public function getByte(pos:Int):Int {
+		return buffer.get(pos);
 	}
 
 	/**
-	 *  Add UInt32
+	 *  Create new Binary Data with prealloced length
+	 */
+	public function new(?length:Int) {
+		size = 0;
+		this.length = length == null ? 0 : length;
+		var incSize = length > INCREMENT_SIZE ? length : INCREMENT_SIZE;		
+		resize(incSize);
+	}
+
+	/**
+	 *  Add UInt32 to the end of buffer
 	 *  @param data - UInt32 data
 	 */
 	public function addUInt32(data:Int) {
