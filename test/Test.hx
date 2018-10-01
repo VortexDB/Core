@@ -18,6 +18,7 @@ class Test {
 		runner.addCase(new HashSetCase());
 		runner.addCase(new SerialPortCase());
 		runner.addCase(new FutureCase());
+		runner.addCase(new BinaryDataCase());
 		Report.create(runner);
 		runner.run();
 	}

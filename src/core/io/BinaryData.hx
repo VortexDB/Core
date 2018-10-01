@@ -31,7 +31,12 @@ class BinaryData {
 	 *  Resize buffer
 	 *  @param newsize - new binary data size
 	 */
-	function resize(newsize:Int) {
+	private function resize(newsize:Int) {
+		if (buffer == null) {
+			buffer = Bytes.alloc(newsize);
+			return;
+		}
+
 		var nbuffer = Bytes.alloc(newsize);
 		nbuffer.blit(0, buffer, 0, buffer.length);
 		buffer = nbuffer;
@@ -60,7 +65,7 @@ class BinaryData {
 	 *  @param pos - position
 	 *  @param len - length
 	 */
-	function insertSize(pos:Int, len:Int) {
+	private function insertSize(pos:Int, len:Int) {
 		var ln = length + len;
 		if (ln > size)
 			resize(ln + INCREMENT_SIZE);
@@ -68,6 +73,16 @@ class BinaryData {
         var right = buffer.sub(pos, sz);
         buffer.blit(pos + len, right, 0, right.length);
 		length += len;
+	}
+
+	/**
+	 *  Create new Binary Data with prealloced length
+	 */
+	public function new(?length:Int) {
+		size = 0;
+		this.length = length == null ? 0 : length;
+		var incSize = length > INCREMENT_SIZE ? length : INCREMENT_SIZE;		
+		resize(incSize);
 	}
 
 	/**
@@ -105,17 +120,7 @@ class BinaryData {
 	 */
 	public function getByte(pos:Int):Int {
 		return buffer.get(pos);
-	}
-
-	/**
-	 *  Create new Binary Data with prealloced length
-	 */
-	public function new(?length:Int) {
-		size = 0;
-		this.length = length == null ? 0 : length;
-		var incSize = length > INCREMENT_SIZE ? length : INCREMENT_SIZE;		
-		resize(incSize);
-	}
+	}	
 
 	/**
 	 *  Add UInt16 to the end of buffer
