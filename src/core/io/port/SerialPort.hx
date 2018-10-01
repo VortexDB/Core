@@ -2,6 +2,7 @@ package core.io.port;
 
 import java.NativeArray;
 import haxe.io.Bytes;
+import core.utils.exceptions.TimeoutExeption;
 
 /**
  * Alias to native port
@@ -84,12 +85,12 @@ class SerialPort {
     /**
      * Timeout on read bytes in milliseconds
      */
-    public static inline var READ_TIMEOUT = 100;
+    public static inline var READ_TIMEOUT = 300;
 
     /**
      * Timeout on read bytes in milliseconds
      */
-    public static inline var WRITE_TIMEOUT = 100;
+    public static inline var WRITE_TIMEOUT = 300;
 
 	/**
 	 * Native serial port
@@ -170,6 +171,8 @@ class SerialPort {
 	public function read():Bytes {
 		// TODO: Futures?
 		Sys.sleep(READ_TIMEOUT / 1000);
+		if (buffer.length < 1)
+			throw new TimeoutException("Port read timeout");
 		var res = buffer.toBytes();
 		buffer.clear();
 		return res;
