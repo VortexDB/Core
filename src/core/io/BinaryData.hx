@@ -118,6 +118,16 @@ class BinaryData {
 	}
 
 	/**
+	 *  Add UInt16 to the end of buffer
+	 *  @param data - UInt16 data
+	 */
+	public function addUInt16(data:Int) {
+		prepareSize(2);
+		addByte((data & 0xFF000) >> 8);
+		addByte((data & 0xFF));
+	}
+
+	/**
 	 *  Add UInt32 to the end of buffer
 	 *  @param data - UInt32 data
 	 */
@@ -127,6 +137,25 @@ class BinaryData {
 		addByte((data & 0xFF0000) >> 16);
 		addByte((data & 0xFF000) >> 8);
 		addByte((data & 0xFF));
+	}
+
+	/**
+	 * Add bytes to buffer
+	 * @param data 
+	 */
+	public function addBytes(data:Bytes) {
+		prepareSize(data.length);
+		buffer.blit(length, data, 0, data.length);
+		length += data.length;
+	}
+
+	/**
+	 * Add BinaryData to buffer
+	 * @param data 
+	 */
+	public function addBinaryData(data:BinaryData) {
+		var bytes = data.toBytes();
+		addBytes(bytes);
 	}
 
 	/**
