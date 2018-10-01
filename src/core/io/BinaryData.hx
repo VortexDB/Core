@@ -123,24 +123,24 @@ class BinaryData {
 	}	
 
 	/**
-	 *  Add UInt16 to the end of buffer
-	 *  @param data - UInt16 data
+	 *  Add Int16 to the end of buffer
+	 *  @param data - Int16 data
 	 */
-	public function addUInt16(data:Int) {
+	public function addInt16(data:Int) {
 		prepareSize(2);
-		addByte((data & 0xFF000) >> 8);
+		addByte((data & 0xFF00) >> 8);
 		addByte((data & 0xFF));
 	}
 
 	/**
-	 *  Add UInt32 to the end of buffer
-	 *  @param data - UInt32 data
+	 *  Add Int32 to the end of buffer
+	 *  @param data - Int32 data
 	 */
-	public function addUInt32(data:Int) {
+	public function addInt32(data:Int) {
 		prepareSize(4);
 		addByte((data & 0xFF000000) >> 24);
 		addByte((data & 0xFF0000) >> 16);
-		addByte((data & 0xFF000) >> 8);
+		addByte((data & 0xFF00) >> 8);
 		addByte((data & 0xFF));
 	}
 
