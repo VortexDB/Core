@@ -86,6 +86,16 @@ class BinaryData {
 	}
 
 	/**
+	 * Clear buffer and trim it to INCREMENT_SIZE if needed
+	 */
+	public function clear() {
+		if (length > INCREMENT_SIZE) {
+			resize(INCREMENT_SIZE);
+		}
+		length = 0;
+	}
+
+	/**
 	 *  Append byte to the end of buffer
 	 *  @param data - byte
 	 */

@@ -50,8 +50,7 @@ class InternalSerialPortDataListener implements com.fazecast.jSerialComm.SerialP
         var array = new NativeArray<java.types.Int8>(bytesAvail);
         owner.port.readBytes(array, array.length);
         var res = Bytes.ofData(array);
-        if (owner.onData != null)
-            owner.onData(owner, res);
+        owner.buffer.addBytes(res);
     }
 }
 
@@ -85,12 +84,12 @@ class SerialPort {
     /**
      * Timeout on read bytes in milliseconds
      */
-    public static inline var READ_TIMEOUT = 100;
+    public static inline var READ_TIMEOUT = 1000;
 
     /**
      * Timeout on read bytes in milliseconds
      */
-    public static inline var WRITE_TIMEOUT = 100;
+    public static inline var WRITE_TIMEOUT = 1000;
 
 	/**
 	 * Native serial port
@@ -116,9 +115,17 @@ class SerialPort {
 	public final byteType:ByteTypeSettings;
 
 	/**
-	 * On data callback
+	 * Buffer for incoming data
 	 */
-	public var onData:OnSerialPortDataCall;
+	private final buffer:BinaryData;
+
+	/**
+	 * Avalable data count in buffer
+	 */
+	public var available(get, never):Int;
+	public function get_available():Int {
+		return buffer.length;
+	}
 
 	/**
 	 * Return serial port list names
@@ -140,7 +147,8 @@ class SerialPort {
 		this.name = name;
 		this.speed = speed != null ? speed : DEFAULT_SPEED;
 		this.byteType = byteType != null ? byteType : DEFAULT_BYTETYPE;
-		
+		this.buffer = new BinaryData();
+
 		port = NativePort.getCommPort(name);		
 	}
 
@@ -156,6 +164,18 @@ class SerialPort {
     }
 
 	/**
+	 * Read data
+	 * @return Bytes
+	 */
+	public function read():Bytes {
+		// TODO: Futures?
+		Sys.sleep(READ_TIMEOUT / 1000);
+		var res = buffer.toBytes();
+		buffer.clear();
+		return res;
+	}
+
+	/**
 	 * Open serial port
 	 */
 	public function open() {
@@ -163,8 +183,6 @@ class SerialPort {
 			return;
 
 		port.setBaudRate(speed);
-        port.setComPortTimeouts(NativePort.TIMEOUT_READ_SEMI_BLOCKING, READ_TIMEOUT, 0);
-        port.setComPortTimeouts(NativePort.TIMEOUT_WRITE_SEMI_BLOCKING, WRITE_TIMEOUT, 0);
         port.addDataListener(new InternalSerialPortDataListener(this));
 		port.openPort();
 	}
