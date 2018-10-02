@@ -1,5 +1,6 @@
 package core.io;
 
+import core.utils.exceptions.Exception;
 import haxe.io.Bytes;
 
 /**
@@ -70,19 +71,28 @@ class BinaryData {
 		if (ln > size)
 			resize(ln + INCREMENT_SIZE);
 		var sz = length - pos;
-        var right = buffer.sub(pos, sz);
-        buffer.blit(pos + len, right, 0, right.length);
+		var right = buffer.sub(pos, sz);
+		buffer.blit(pos + len, right, 0, right.length);
 		length += len;
+	}
+
+	/**
+	 * Return BinaryData from existed Bytes buffer
+	 */
+	public static function ofBytes(data:Bytes):BinaryData {
+		var binary = new BinaryData();
+		binary.buffer = data;
+		binary.length = data.length;
+		binary.size = data.length;
+		return binary;
 	}
 
 	/**
 	 *  Create new Binary Data with prealloced length
 	 */
-	public function new(?length:Int) {
+	public function new() {
 		size = 0;
-		this.length = length == null ? 0 : length;
-		var incSize = length > INCREMENT_SIZE ? length : INCREMENT_SIZE;		
-		resize(incSize);
+		length = 0;
 	}
 
 	/**
@@ -125,12 +135,12 @@ class BinaryData {
 
 	/**
 	 * Get byte by position
-	 * @param pos 
+	 * @param pos
 	 * @return Int
 	 */
 	public function getByte(pos:Int):Int {
 		return buffer.get(pos);
-	}	
+	}
 
 	/**
 	 *  Add Int16 to the end of buffer
@@ -156,7 +166,7 @@ class BinaryData {
 
 	/**
 	 * Add bytes to buffer
-	 * @param data 
+	 * @param data
 	 */
 	public function addBytes(data:Bytes) {
 		prepareSize(data.length);
@@ -166,11 +176,28 @@ class BinaryData {
 
 	/**
 	 * Add BinaryData to buffer
-	 * @param data 
+	 * @param data
 	 */
 	public function addBinaryData(data:BinaryData) {
 		var bytes = data.toBytes();
 		addBytes(bytes);
+	}
+
+	/**
+	 * Slice buffer by position and count
+	 * If pos + count more than length then return slice from position to the end of buffer
+	 * @param idx
+	 * @param count
+	 * @return BinaryData
+	 */
+	public function slice(pos:Int, count:Int):BinaryData {
+		if (pos >= length)
+			throw new Exception("Out of bound");
+		var len = pos + count <= length ? count : length - pos;
+		trace(len);
+		var bytes = Bytes.alloc(len);
+		bytes.blit(0, buffer, pos, len);
+		return BinaryData.ofBytes(bytes);
 	}
 
 	/**
