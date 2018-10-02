@@ -1,5 +1,6 @@
 package core.async;
 
+import core.utils.exceptions.Exception;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Callable;
@@ -20,10 +21,10 @@ class FutureCallable<T> implements Callable<T> {
 
 	/**
 	 * Constructor
-	 * @param fn 
+	 * @param fn
 	 * @return -> T)
 	 */
-	public function new(fn : () -> T) {
+	public function new(fn:() -> T) {
 		this.fn = fn;
 	}
 
@@ -64,10 +65,10 @@ class Future<T> {
 	 */
 	private var result:T;
 
-    /**
-     * Is future complete
-     */
-    public var isComplete:Bool;
+	/**
+	 * Is future complete
+	 */
+	public var isComplete:Bool;
 
 	/**
 	 * Wait all futures
@@ -88,7 +89,7 @@ class Future<T> {
 	public function new(call:() -> T) {
 		callable = new FutureCallable<T>(call);
 		nativeTask = new FutureTask<T>(callable);
-        executor.execute(nativeTask);
+		executor.execute(nativeTask);
 	}
 
 	/**
@@ -99,6 +100,22 @@ class Future<T> {
 	public function wait(?timeout:Int):T {
 		result = nativeTask.get();
 		return result;
+	}
+
+	/**
+	 * Completes future with result
+	 * @param value
+	 */
+	public function complete(value:T) {
+		nativeTask.set(value);
+	}
+
+	/**
+	 * Completes future with error
+	 * @param e
+	 */
+	public function error(e:Exception) {
+		nativeTask.setException(e);
 	}
 
 	/**

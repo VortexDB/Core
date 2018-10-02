@@ -3,7 +3,11 @@ package core.utils.exceptions;
 /**
  * Base class of exception
  */
-class Exception {
+#if java
+class Exception extends  java.lang.Throwable {
+#else
+class Exception
+#end
 	/**
 	 * Exception message
 	 */
@@ -13,7 +17,10 @@ class Exception {
 	 * Constructor
 	 * @param message
 	 */
-	public function new(message:String) {
+	public function new(message:String) {		
+		#if java
+		super(message);
+		#end
 		this.message = message;
 	}
 }
