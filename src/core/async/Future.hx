@@ -43,6 +43,7 @@ class FutureCallable<T> implements Callable<T> {
 /**
  * Async task with promise of result or error
  * TODO: crossplatform. Now it' only for java
+ * TODO: abstract of FutureTask for java, cause some methods are protected
  */
 class Future<T> {
 	/**
@@ -98,7 +99,7 @@ class Future<T> {
 	 * @return T
 	 */
 	public function wait(?timeout:Int):T {
-		result = nativeTask.get();
+		result = nativeTask.get(2000, java.util.concurrent.TimeUnit.MILLISECONDS);
 		return result;
 	}
 
@@ -107,7 +108,7 @@ class Future<T> {
 	 * @param value
 	 */
 	public function complete(value:T) {
-		nativeTask.set(value);
+		//nativeTask.set(value);
 	}
 
 	/**
@@ -115,7 +116,7 @@ class Future<T> {
 	 * @param e
 	 */
 	public function error(e:Exception) {
-		nativeTask.setException(e);
+		//nativeTask.setException(e);
 	}
 
 	/**
