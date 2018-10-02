@@ -153,6 +153,15 @@ class BinaryData {
 	}
 
 	/**
+	 * Read Int16 by position
+	 * @param pos 
+	 * @return Int
+	 */
+	public function getInt16(pos:Int):Int {
+		return (buffer.get(pos) << 8) + buffer.get(pos + 1);
+	}
+
+	/**
 	 *  Add Int32 to the end of buffer
 	 *  @param data - Int32 data
 	 */
@@ -194,7 +203,6 @@ class BinaryData {
 		if (pos >= length)
 			throw new Exception("Out of bound");
 		var len = pos + count <= length ? count : length - pos;
-		trace(len);
 		var bytes = Bytes.alloc(len);
 		bytes.blit(0, buffer, pos, len);
 		return BinaryData.ofBytes(bytes);

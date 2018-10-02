@@ -23,6 +23,9 @@ class BinaryDataCase {
         Assert.equals(binary.getByte(0), 67);
     }
 
+    /**
+     * Test add Int16
+     */
     public function testAddInt16() {
         var binary = new BinaryData();
         binary.addInt16(0xFF11);
@@ -30,6 +33,19 @@ class BinaryDataCase {
         Assert.equals(binary.getByte(1), 0x11);
     }
 
+    /**
+     * Test add Int16
+     */
+    public function testGetInt16() {
+        var binary = new BinaryData();
+        binary.addInt16(0xFF11);
+        var res = binary.getInt16(0);
+        Assert.equals(res, 0xFF11);
+    }
+
+    /**
+     * Test add Int32
+     */
     public function testAddInt32() {
         var binary = new BinaryData();
         binary.addInt32(0xFF112233);
