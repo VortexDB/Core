@@ -1,5 +1,6 @@
 package core.async.fiber;
 
+import core.utils.exceptions.TimeoutExeption.TimeoutException;
 import java.vm.Thread;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -42,18 +43,23 @@ class Channel<T> {
 	}
 
 	/**
-	 * Read data
+	 * Read data with timeout in milliseconds
 	 * @return T
 	 */
-	public function read():T {        
+	public function read(?timeout:Int):T {        
 		lock.lock();
         Scheduler.instance.notifyLock(Thread.current());
         if (result == null) {
-		    dataCond.await();
+			if (timeout == null) {
+		    	dataCond.await();
+			} else {
+				dataCond.await(timeout, java.util.concurrent.TimeUnit.MILLISECONDS);
+				throw new TimeoutException("Channel read timeout");
+			}
         }
 		var res = result;
 		result = null;
-		
+
         lock.unlock();		
 		return res;
 	}

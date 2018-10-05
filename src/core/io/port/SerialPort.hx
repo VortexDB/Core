@@ -177,8 +177,8 @@ class SerialPort {
 	 * Read data
 	 * @return Bytes
 	 */
-	public function read():Bytes {
-		channel.read();
+	public function read(?timeout:Int):Bytes {
+		channel.read(timeout);
 		var res = buffer.toBytes();
 		buffer.clear();
 		return res;
