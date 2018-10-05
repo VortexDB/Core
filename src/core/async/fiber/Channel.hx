@@ -33,7 +33,7 @@ class Channel<T> {
 
 	/**
 	 * Send data
-	 * @param v 
+	 * @param v
 	 */
 	public function send(v:T) {
 		lock.lock();
@@ -46,21 +46,22 @@ class Channel<T> {
 	 * Read data with timeout in milliseconds
 	 * @return T
 	 */
-	public function read(?timeout:Int):T {        
+	public function read(?timeout:Int):T {
 		lock.lock();
-        Scheduler.instance.notifyLock(Thread.current());
-        if (result == null) {
+		Scheduler.instance.notifyLock(Thread.current());
+		if (result == null) {
 			if (timeout == null) {
-		    	dataCond.await();
+				dataCond.await();
 			} else {
-				dataCond.await(timeout, java.util.concurrent.TimeUnit.MILLISECONDS);
-				throw new TimeoutException("Channel read timeout");
+				if (!dataCond.await(timeout, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+					throw new TimeoutException("Channel read timeout");
+				}
 			}
-        }
+		}
 		var res = result;
 		result = null;
 
-        lock.unlock();		
+		lock.unlock();
 		return res;
 	}
 }
