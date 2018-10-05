@@ -1,7 +1,7 @@
 package test;
 
 import utest.Assert;
-import core.async.Future;
+import core.async.future.Future;
 
 class UserFut {
     public final name:String;
@@ -23,7 +23,7 @@ class FutureCase {
      * Test future on success
      */
     public function testOnSuccess() {
-        var future1 = new Future(() -> {
+        var future1 = Future.now(() -> {
 			return 99;
 		});
 
@@ -33,13 +33,13 @@ class FutureCase {
             d = e;
         });
 
-        var future2 = new Future(() -> {
+        var future2 = Future.now(() -> {
 			return 1;
 		});
 
-        future1.wait(); // TEST HANG
+        future1.await(); // TEST HANG
 
-        future2.wait();
+        future2.await();
         Assert.equals(d, 99);
     }
 
@@ -47,21 +47,21 @@ class FutureCase {
 	 * Test future await
 	 */
 	public function testWait() {
-		var future1 = new Future(() -> {
+		var future1 = Future.now(() -> {
 			return 33;
 		});
 
-		var future2 = new Future(() -> {
+		var future2 = Future.now(() -> {
 			return "GOOD";
 		});
 
-		var future3 = new Future(() -> {
+		var future3 = Future.now(() -> {
 			return new UserFut("Batman");
 		});
 
-		var res1 = future1.wait();
-		var res2 = future2.wait();
-        var res3 = future3.wait();
+		var res1 = future1.await();
+		var res2 = future2.await();
+        var res3 = future3.await();
 		
 		Assert.equals(res1, 33);
 		Assert.equals(res2, "GOOD");
@@ -72,15 +72,15 @@ class FutureCase {
      * Test wait all futures
      */
     public function testWaitAll() {
-        var future1 = new Future(() -> {
+        var future1 = Future.now(() -> {
 			return 33;
 		});
 
-		var future2 = new Future(() -> {
+		var future2 = Future.now(() -> {
 			return 44;
 		});
 
-		var future3 = new Future(() -> {
+		var future3 = Future.now(() -> {
 			return 55;
 		});
 
@@ -92,15 +92,15 @@ class FutureCase {
      * Test nested wait
      */
     public function testNestedWait() {
-		var future1 = new Future(() -> {			
-			var future2 = new Future(() -> {				
+		var future1 = Future.now(() -> {			
+			var future2 = Future.now(() -> {				
 				return 44;
 			});			
-			var v = future2.wait();
+			var v = future2.await();
 			return v;
 		});
 		
-		var res = future1.wait();
+		var res = future1.await();
 		Assert.equals(res, 44);
 	}
 }
