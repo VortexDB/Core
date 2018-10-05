@@ -1,5 +1,7 @@
 package core.io.port;
 
+import core.async.fiber.Channel;
+import java.vm.Thread;
 import java.NativeArray;
 import haxe.io.Bytes;
 import core.utils.exceptions.TimeoutExeption;
@@ -42,7 +44,7 @@ class InternalSerialPortDataListener implements com.fazecast.jSerialComm.SerialP
 	 * Process event
 	 * @param event 
 	 */
-	public function serialEvent(event:com.fazecast.jSerialComm.SerialPortEvent):Void {
+	public function serialEvent(event:com.fazecast.jSerialComm.SerialPortEvent):Void {		
         // Ignore everything except Data available
         if (event.getEventType() != NativePort.LISTENING_EVENT_DATA_AVAILABLE)
             return;
@@ -51,7 +53,8 @@ class InternalSerialPortDataListener implements com.fazecast.jSerialComm.SerialP
         var array = new NativeArray<java.types.Int8>(bytesAvail);
         owner.port.readBytes(array, array.length);
         var res = Bytes.ofData(array);
-        owner.buffer.addBytes(res);
+        owner.buffer.addBytes(res);				
+		owner.channel.send(true);
     }
 }
 
@@ -85,7 +88,7 @@ class SerialPort {
     /**
      * Timeout on read bytes in milliseconds
      */
-    public static inline var READ_TIMEOUT = 300;
+    public static inline var READ_TIMEOUT = 1000;
 
     /**
      * Timeout on read bytes in milliseconds
@@ -121,6 +124,11 @@ class SerialPort {
 	private final buffer:BinaryData;
 
 	/**
+	 * Channel to transfer data to read method
+	 */
+	private final channel:Channel<Bool>;
+
+	/**
 	 * Avalable data count in buffer
 	 */
 	public var available(get, never):Int;
@@ -145,6 +153,7 @@ class SerialPort {
 	 * @param name
 	 */
 	public function new(name:String, ?speed:Int, ?byteType:ByteTypeSettings) {
+		this.channel = new Channel<Bool>();
 		this.name = name;
 		this.speed = speed != null ? speed : DEFAULT_SPEED;
 		this.byteType = byteType != null ? byteType : DEFAULT_BYTETYPE;
@@ -169,10 +178,7 @@ class SerialPort {
 	 * @return Bytes
 	 */
 	public function read():Bytes {
-		// TODO: Futures?
-		Sys.sleep(READ_TIMEOUT / 1000);
-		if (buffer.length < 1)
-			throw new TimeoutException("Port read timeout");
+		channel.read();
 		var res = buffer.toBytes();
 		buffer.clear();
 		return res;

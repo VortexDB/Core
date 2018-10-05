@@ -51,7 +51,10 @@ class Channel<T> {
         if (result == null) {
 		    dataCond.await();
         }
-        lock.unlock();
-		return result;
+		var res = result;
+		result = null;
+		
+        lock.unlock();		
+		return res;
 	}
 }
