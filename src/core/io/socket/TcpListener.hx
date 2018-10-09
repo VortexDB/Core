@@ -1,4 +1,4 @@
-package core.io;
+package core.io.socket;
 
 import java.NativeArray;
 import haxe.io.Bytes;
@@ -47,7 +47,7 @@ typedef TcpListenerParameters = {
 /**
  * Client that was accepted by TcpListener
  */
-@:allow(core.io.TcpListener)
+@:allow(core.io.socket.TcpListener)
 class TcpListenerClient {
 	/**
 	 * Channel for sending receiving data
