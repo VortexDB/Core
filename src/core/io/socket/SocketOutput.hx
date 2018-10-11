@@ -5,16 +5,23 @@ import core.io.output.ISocketOutput;
 
 #if java
 import java.nio.channels.SocketChannel;
+import java.nio.ByteBuffer;
 
 /**
  *  Output for socket
  */
 class SocketOutput implements ISocketOutput {
 	/**
+	 * Native socket
+	 */
+	private final nativeSocket:SocketChannel;
+
+	/**
 	 * Constructor
 	 */
 	@:allow(core.io.socket.TcpChannel)
 	private function new(nativeSocket:SocketChannel) {
+		this.nativeSocket = nativeSocket;
 	}
 
 	/**
@@ -22,7 +29,9 @@ class SocketOutput implements ISocketOutput {
 	 *  @param data - byte
 	 */
 	public function writeByte(data:Int):Void {
-		throw "Not implemented";
+		var bytes = ByteBuffer.allocate(1);
+		bytes.put(data);
+		nativeSocket.write(bytes);
 	}
 
 	/**
@@ -31,7 +40,8 @@ class SocketOutput implements ISocketOutput {
 	 *  @return Number of bytes written
 	 */
 	public function writeBytes(data:Bytes):Int {
-		throw "Not implemented";
+		var bytes = ByteBuffer.wrap(data.getData());		
+		return nativeSocket.write(bytes);
 	}
 
 	/**
@@ -39,14 +49,15 @@ class SocketOutput implements ISocketOutput {
 	 *  @param data - some string
 	 */
 	public function writeString(data:String) {
-		throw "Not implemented";
+		var bytes = ByteBuffer.wrap(Bytes.ofString(data).getData());
+		nativeSocket.write(bytes);
 	}
 
 	/**
 	 *  Close stream
 	 */
 	public function close():Void {
-		throw "Not implemented";
+		nativeSocket.close();
 	}
 }
 #end
