@@ -22,7 +22,7 @@ class StaticHandler extends Handler {
 	 */
 	public function addPath(path:String) {
 		if (!Path.exists(path))
-			throw 'Directory ${path} not exists';
+			throw new Exception('Directory ${path} not exists');
 		var parts = path.split("/");
 		var parts = parts.filter(function(s:String) {
 			return s != "" && s != "." && s != "..";

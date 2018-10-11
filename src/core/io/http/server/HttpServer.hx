@@ -1,5 +1,8 @@
 package core.io.http.server;
 
+import core.io.socket.TcpListener;
+import core.io.http.server.handler.Handler;
+
 /**
  *  Embedded http server for tarantool
  */
@@ -7,7 +10,7 @@ class HttpServer {
 	/**
 	 *  Server socket
 	 */
-	var socket:AbstractTcpSocket;
+	var socket:TcpListener;
 
 	/**
 	 *  First handler
@@ -67,7 +70,7 @@ class HttpServer {
 	 */
 	public function bind(host:String, port:Int):Void {
 		if (firstHandler == null)
-			throw "No handlers";
+			throw new Exception("No handlers");
 		var sock = new TcpSocket();
 		this.socket = sock;
 
