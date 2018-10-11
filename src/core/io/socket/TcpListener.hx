@@ -1,5 +1,6 @@
 package core.io.socket;
 
+import core.async.fiber.Fiber;
 import java.NativeArray;
 import haxe.io.Bytes;
 import java.net.InetSocketAddress;
@@ -79,14 +80,31 @@ class TcpListener {
 	 * @param key
 	 */
 	private function handleAccept(key:SelectionKey) {
+		if (onAccept == null)
+			return;
+
 		var server = cast(key.channel(), ServerSocketChannel);
 		var clientChannel = server.accept();
 		clientChannel.configureBlocking(false);
-		clientChannel.register(selector, SelectionKey.OP_READ, null);
-		if (onAccept != null) {
-			var channel = new TcpChannel(clientChannel);			
+		var channel = new TcpChannel(clientChannel);
+		clientChannel.register(selector, SelectionKey.OP_READ, channel);
+		Fiber.spawn(() -> {
 			onAccept(channel);
-		}
+		});
+	}
+
+	/**
+	 * Handle read from socket channel
+	 * @param key
+	 */
+	private function handleRead(key:SelectionKey) {
+		var socket:SocketChannel = cast key.channel();
+		var channel:TcpChannel = cast key.attachment();
+		var read = socket.read(this.readBuffer);
+		if (read < 1)
+			return;
+		trace("DATA");
+		channel.appendRead(readBuffer);
 	}
 
 	/**
@@ -116,15 +134,21 @@ class TcpListener {
 	 */
 	public function open():Void {
 		while (this.serverSocket.isOpen()) {
-			selector.select();
+			var num = selector.select();
+			if (num == 0)
+				continue;
+
 			var iter = this.selector.selectedKeys().iterator();
 
 			while (iter.hasNext()) {
 				var key = iter.next();
 				iter.remove();
 
-				if (key.isAcceptable())
+				if (key.isAcceptable()) {
 					this.handleAccept(key);
+				} else if (key.isReadable()) {
+					this.handleRead(key);
+				}
 			}
 		}
 	}

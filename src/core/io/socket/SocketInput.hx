@@ -1,5 +1,6 @@
 package core.io.socket;
 
+import core.async.fiber.Channel;
 import haxe.io.Bytes;
 import core.io.input.ISocketInput;
 
@@ -11,21 +12,17 @@ import java.nio.ByteBuffer;
 /**
  * For getting data from socket
  */
+@:allow(core.io.socket.TcpChannel)
 class SocketInput implements ISocketInput {
-	/**
-	 * Buffer read size
-	 */
-	public static inline final READ_SIZE = 1024;
-
-	/**
-	 * Buffer for reading one byte
-	 */
-	private final oneByteBuffer:ByteBuffer;
-
 	/**
 	 * Buffer for reading bytes
 	 */
-	private final readBuffer:ByteBuffer;
+	private final readBuffer:BinaryData;
+
+	/**
+	 * Channel to signal about data
+	 */
+	private final channel:Channel<Bool>;
 
 	/**
 	 * Native socket
@@ -33,35 +30,40 @@ class SocketInput implements ISocketInput {
 	private final nativeSocket:SocketChannel;
 
 	/**
-	 * Constructor
+	 * Append buffer to read buffer
+	 * @param buffer 
 	 */
-	@:allow(core.io.socket.TcpChannel)
+	private function appendRead(buffer:ByteBuffer) {
+		trace("appendRead");		
+		readBuffer.addBytesData(buffer.array());
+		channel.send(true);
+	}
+
+	/**
+	 * Constructor
+	 */	
 	private function new(nativeSocket:SocketChannel) {
 		this.nativeSocket = nativeSocket;
-		this.oneByteBuffer = ByteBuffer.allocate(1);
-		this.readBuffer = ByteBuffer.allocate(READ_SIZE);
+		this.readBuffer = new BinaryData();
+		this.channel = new Channel<Bool>();
 	}
 
 	/**
 	 *  Read one byte
 	 *  @return Int
 	 */
-	public function readByte():Int {
-		nativeSocket.read(oneByteBuffer);		
-		return oneByteBuffer.getInt(0);
+	public function readByte():Int {		
+		return 0;
 	}
 
 	/**
 	 *  Read bytes
-	 * TODO: too many copy
 	 *  @param count - byte count to read
 	 *  @return ByteArray
 	 */
 	public function readBytes(count:Int):Bytes {
-		var read = nativeSocket.read(readBuffer);		
-		var totalBytes = Bytes.ofData(readBuffer.array());
-		var res = Bytes.alloc(read);
-		res.blit(0, totalBytes, 0, read);
+		channel.read();
+		var res = readBuffer.splice(0, count);
 		return res;
 	}
 

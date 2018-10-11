@@ -95,19 +95,19 @@ class BinaryDataCase {
         binary.addByte(77);
         binary.addByte(88);
 
-        var sliced1 = binary.slice(2, 2);
+        var sliced1 = BinaryData.ofBytes(binary.slice(2, 2));
         Assert.equals(sliced1.getByte(0), 55);
         Assert.equals(sliced1.getByte(1), 66);
         Assert.equals(sliced1.length, 2);
 
-        var sliced2 = binary.slice(3, 20);
+        var sliced2 = BinaryData.ofBytes(binary.slice(3, 20));
         Assert.equals(sliced2.getByte(0), 66);
         Assert.equals(sliced2.getByte(1), 77);
         Assert.equals(sliced2.getByte(2), 88);
         Assert.equals(sliced2.length, 3);
 
         // On the edge
-        var sliced3 = binary.slice(3, 3);
+        var sliced3 = BinaryData.ofBytes(binary.slice(3, 3));
         Assert.equals(sliced3.getByte(0), 66);
         Assert.equals(sliced3.getByte(1), 77);
         Assert.equals(sliced3.getByte(2), 88);

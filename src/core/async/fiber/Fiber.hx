@@ -27,6 +27,17 @@ class Fiber {
     }
 
     /**
+     * Yield execution
+     */
+    public static function yield() {
+        var channel = new Channel();
+        spawn(() -> {
+            channel.send(true);
+        });
+        channel.read();
+    }
+
+    /**
      * Constructor
      * @param call 
      */

@@ -1,5 +1,6 @@
 package core.io;
 
+import haxe.io.BytesData;
 import core.utils.exceptions.Exception;
 import haxe.io.Bytes;
 
@@ -27,6 +28,15 @@ class BinaryData {
 	 *  Length of buffer
 	 */
 	public var length(default, null):Int;
+
+	/**
+	 * Is binary data empty
+	 */
+	public var isEmpty(get, null):Bool;
+
+	private function get_isEmpty():Bool {
+		return length < 1;
+	}
 
 	/**
 	 *  Resize buffer
@@ -100,6 +110,7 @@ class BinaryData {
 	 */
 	public function clear() {
 		if (length > INCREMENT_SIZE) {
+			buffer = null;
 			resize(INCREMENT_SIZE);
 		}
 		length = 0;
@@ -154,7 +165,7 @@ class BinaryData {
 
 	/**
 	 * Read Int16 by position
-	 * @param pos 
+	 * @param pos
 	 * @return Int
 	 */
 	public function getInt16(pos:Int):Int {
@@ -184,6 +195,15 @@ class BinaryData {
 	}
 
 	/**
+	 * Add bytes data(NativeArray) to buffer
+	 * @param data
+	 */
+	public function addBytesData(data:BytesData) {
+		var bytes = Bytes.ofData(data);
+		addBytes(bytes);
+	}
+
+	/**
 	 * Add BinaryData to buffer
 	 * @param data
 	 */
@@ -199,13 +219,42 @@ class BinaryData {
 	 * @param count
 	 * @return BinaryData
 	 */
-	public function slice(pos:Int, count:Int):BinaryData {
+	public function slice(pos:Int, count:Int):Bytes {
 		if (pos >= length)
 			throw new Exception("Out of bound");
 		var len = pos + count <= length ? count : length - pos;
 		var bytes = Bytes.alloc(len);
 		bytes.blit(0, buffer, pos, len);
-		return BinaryData.ofBytes(bytes);
+		return bytes;
+	}
+
+	/**
+	 * Cut data from buffer
+	 * @param pos 
+	 * @param count 
+	 * @return BinaryData
+	 */
+	public function splice(pos:Int, count:Int):Bytes {
+		if (pos >= length)
+			throw new Exception("Out of bound");
+		
+		if (pos == 0 && count >= length) {
+			var res = buffer;
+			clear();
+			return res;
+		}
+		
+		var res = slice(pos, count);
+		var cpPos = pos + res.length;
+		if (cpPos > length) {
+			length = pos;
+		} else {
+			var part = slice(cpPos, length);
+			buffer.blit(pos, part, 0, part.length);
+			length = pos + part.length;
+		}
+		
+		return res;
 	}
 
 	/**
