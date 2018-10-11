@@ -103,7 +103,6 @@ class TcpListener {
 		var read = socket.read(this.readBuffer);
 		if (read < 1)
 			return;
-		trace("DATA");
 		channel.appendRead(readBuffer);
 	}
 

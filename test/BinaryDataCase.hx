@@ -113,4 +113,32 @@ class BinaryDataCase {
         Assert.equals(sliced3.getByte(2), 88);
         Assert.equals(sliced3.length, 3);
     }
+
+    /**
+	 * Test splice
+	 */
+	public function testSplice() {
+        var binary = BinaryData.ofArray([3,4,7,5,10,9,1,2]);
+        var splice = binary.splice(0, 3);
+        Assert.equals(splice.toHex().toUpperCase(), "030407");
+        Assert.equals(binary.toHex().toUpperCase(), "050A090102");
+        
+        // Test middle
+        var binary = BinaryData.ofArray([3,4,7,5,10,9,1,2]);
+        var splice = binary.splice(2, 3);
+        Assert.equals(splice.toHex().toUpperCase(), "07050A");
+        Assert.equals(binary.toHex().toUpperCase(), "0304090102");
+
+        // Test start and over
+        var binary = BinaryData.ofArray([3]);
+        var splice = binary.splice(0, 3);
+        Assert.equals(splice.toHex().toUpperCase(), "03");
+        Assert.equals(binary.length, 0);
+
+        // Test middle and over
+        var binary = BinaryData.ofArray([3,4,7,5,10,9,1,2]);
+        var splice = binary.splice(5, 10);
+        Assert.equals(splice.toHex().toUpperCase(), "090102");
+        Assert.equals(binary.toHex().toUpperCase(), "030407050A");
+    }
 }

@@ -98,6 +98,19 @@ class BinaryData {
 	}
 
 	/**
+	 * Creates BinaryData from array of byte
+	 * @param data 
+	 * @return BinaryData
+	 */
+	public static function ofArray(data:Array<Int>):BinaryData {
+		var res = new BinaryData();
+		for (b in data) {
+			res.addByte(b);
+		}
+		return res;
+	}
+
+	/**
 	 *  Create new Binary Data with prealloced length
 	 */
 	public function new() {
@@ -238,16 +251,10 @@ class BinaryData {
 		if (pos >= length)
 			throw new Exception("Out of bound");
 		
-		if (pos == 0 && count >= length) {
-			var res = buffer;
-			clear();
-			return res;
-		}
-		
-		var res = slice(pos, count);
+		var res = slice(pos, count);		
 		var cpPos = pos + res.length;
-		if (cpPos > length) {
-			length = pos;
+		if (cpPos >= length) {
+			length = length - res.length;
 		} else {
 			var part = slice(cpPos, length);
 			buffer.blit(pos, part, 0, part.length);
@@ -262,5 +269,13 @@ class BinaryData {
 	 */
 	public function toBytes():Bytes {
 		return buffer.sub(0, length);
+	}
+
+	/**
+	 * Convert to HEX
+	 * @return String
+	 */
+	public function toHex():String {
+		return toBytes().toHex();
 	}
 }
