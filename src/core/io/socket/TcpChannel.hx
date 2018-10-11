@@ -29,8 +29,8 @@ class TcpChannel {
 	 * Append buffer to read buffer
 	 * @param buffer 
 	 */
-	private function appendRead(buffer:ByteBuffer) {
-		input.appendRead(buffer);
+	private function appendRead(buffer:ByteBuffer, count:Int) {
+		input.appendRead(buffer, count);
 	}
 
 	/**

@@ -33,9 +33,8 @@ class SocketInput implements ISocketInput {
 	 * Append buffer to read buffer
 	 * @param buffer 
 	 */
-	private function appendRead(buffer:ByteBuffer) {
-		trace("appendRead");		
-		readBuffer.addBytesData(buffer.array());
+	private function appendRead(buffer:ByteBuffer, count:Int) {
+		readBuffer.addBytesData(buffer.array(), count);
 		channel.send(true);
 	}
 

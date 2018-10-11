@@ -201,19 +201,20 @@ class BinaryData {
 	 * Add bytes to buffer
 	 * @param data
 	 */
-	public function addBytes(data:Bytes) {
-		prepareSize(data.length);
-		buffer.blit(length, data, 0, data.length);
-		length += data.length;
+	public function addBytes(data:Bytes, ?count:Int) {
+		var cnt = count == null ? data.length : count;
+		prepareSize(cnt);
+		buffer.blit(length, data, 0, cnt);
+		length += cnt;		
 	}
 
 	/**
 	 * Add bytes data(NativeArray) to buffer
 	 * @param data
 	 */
-	public function addBytesData(data:BytesData) {
+	public function addBytesData(data:BytesData, ?count:Int) {
 		var bytes = Bytes.ofData(data);
-		addBytes(bytes);
+		addBytes(bytes, count);
 	}
 
 	/**

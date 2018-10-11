@@ -100,10 +100,11 @@ class TcpListener {
 	private function handleRead(key:SelectionKey) {
 		var socket:SocketChannel = cast key.channel();
 		var channel:TcpChannel = cast key.attachment();
+		this.readBuffer.rewind();
 		var read = socket.read(this.readBuffer);
 		if (read < 1)
 			return;
-		channel.appendRead(readBuffer);
+		channel.appendRead(readBuffer, read);
 	}
 
 	/**
