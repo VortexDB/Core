@@ -1,7 +1,7 @@
 package test;
 
 import utest.Assert;
-import core.io.TcpListener;
+import core.io.socket.TcpListener;
 
 /**
  *  For testing TcpListener
