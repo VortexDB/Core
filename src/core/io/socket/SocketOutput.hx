@@ -3,10 +3,20 @@ package core.io.socket;
 import haxe.io.Bytes;
 import core.io.output.ISocketOutput;
 
+#if java
+import java.nio.channels.SocketChannel;
+
 /**
  *  Output for socket
  */
 class SocketOutput implements ISocketOutput {
+	/**
+	 * Constructor
+	 */
+	@:allow(core.io.socket.TcpChannel)
+	private function new(nativeSocket:SocketChannel) {
+	}
+
 	/**
 	 *  Write one byte
 	 *  @param data - byte
@@ -39,3 +49,4 @@ class SocketOutput implements ISocketOutput {
 		throw "Not implemented";
 	}
 }
+#end
