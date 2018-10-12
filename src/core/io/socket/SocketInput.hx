@@ -15,6 +15,11 @@ import java.nio.ByteBuffer;
 @:allow(core.io.socket.TcpChannel)
 class SocketInput implements ISocketInput {
 	/**
+	 * Bytes to read when reading line
+	 */
+	public static inline final READ_LINE_BYTES = 1024;	
+
+	/**
 	 * Buffer for reading bytes
 	 */
 	private final readBuffer:BinaryData;
@@ -34,8 +39,22 @@ class SocketInput implements ISocketInput {
 	 * @param buffer 
 	 */
 	private function appendRead(buffer:ByteBuffer, count:Int) {
-		readBuffer.addBytesData(buffer.array(), count);
+		readBuffer.addBytesData(buffer.array(), count);	
 		channel.send(true);
+	}
+
+	/**
+	 * Scan buffer for new line
+	 * @return Int
+	 */
+	private function getNewLineIdx():Int {
+		for (i in 0...readBuffer.length) {
+			var b = readBuffer.getByte(i);
+			if (b == 0x0A) {
+				return i;
+			}			
+		}
+		return -1;
 	}
 
 	/**
@@ -76,7 +95,19 @@ class SocketInput implements ISocketInput {
 	 *  @return String
 	 */
 	public function readLine():String {
-		throw "Not implemented";
+		trace(1);
+		var idx = getNewLineIdx();
+		trace(idx);
+		while (idx < 0) {
+			trace(2);
+			channel.read();
+			trace(3);
+		}
+
+		trace(4);
+		var res = readBuffer.splice(0, idx).toString();
+		trace(res);
+		return res;
 	}
 
 	/**

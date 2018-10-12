@@ -149,5 +149,9 @@ class BinaryDataCase {
         var splice = binary.splice(5, 10);
         Assert.equals(splice.toHex().toUpperCase(), "090102");
         Assert.equals(binary.toHex().toUpperCase(), "030407050A");
-    }
+
+        var binary = BinaryData.ofArray([3,4,7,5,10,9,1,2]);
+        var splice = binary.splice(0, 0);
+        Assert.equals(splice.length, 0);
+    }    
 }
