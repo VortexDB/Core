@@ -132,7 +132,7 @@ class TcpListener {
 	/**
 	 * Open port on host and starts listen
 	 */
-	public function open():Void {
+	public function bind():Void {
 		while (this.serverSocket.isOpen()) {
 			var num = selector.select();
 			if (num == 0)

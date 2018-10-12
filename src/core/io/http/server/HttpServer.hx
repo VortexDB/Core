@@ -1,5 +1,7 @@
 package core.io.http.server;
 
+import haxe.Log;
+import core.utils.exceptions.Exception;
 import core.io.socket.TcpListener;
 import core.io.socket.TcpChannel;
 import core.io.http.server.handler.Handler;
@@ -36,11 +38,8 @@ class HttpServer {
 				var context = new HttpContext(request, response);
 				firstHandler.process(context);
 			}
-		} catch (e:SocketError) {
-			// TODO: process error
-			// trace (e);
 		} catch (e:Dynamic) {
-			trace(e);
+			Log.trace(e);
 			channel.output.close();
 		}
 	}
@@ -69,14 +68,14 @@ class HttpServer {
 	 *  @param host - Example: * - for all possible ip, localhost, 192.168.0.196, mysite.ru
 	 *  @param port - Example: 80, 8080
 	 */
-	public function bind(host:String, port:Int):Void {
+	public function bind(endpoint:TcpListenerParameters):Void {
 		if (firstHandler == null)
 			throw new Exception("No handlers");
-		var sock = new TcpListener();
-		this.socket = sock;
-
-		sock.bind(host, port, (c) -> {
+		this.socket = new TcpListener(endpoint);
+		this.socket.onAccept = (c) -> {
 			processClient(c);
-		});
+		};
+
+		this.socket.bind();
 	}
 }

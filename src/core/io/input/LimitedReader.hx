@@ -1,6 +1,7 @@
 package core.io.input;
 
 import haxe.io.Bytes;
+import core.utils.exceptions.IoException;
 
 /**
  *  Reader with size limit
@@ -9,12 +10,12 @@ class LimitedReader implements ILimitedInput {
 	/**
 	 *  Data input
 	 */
-	var input:IByteInput;
+	private final input:IByteInput;
 
 	/**
 	 *  Size
 	 */
-	public var length(default, null):Int;
+	public final length:Int;
 
 	/**
 	 *  Current pos
@@ -37,7 +38,7 @@ class LimitedReader implements ILimitedInput {
 	 */
 	public function readByte():Int {
 		if (position + 1 >= length)
-			throw IoError.Eof;
+			throw new EofException();
 		var data = input.readByte();
 		position += 1;
 		return data;
@@ -48,14 +49,14 @@ class LimitedReader implements ILimitedInput {
 	 *  @param count - byte count to read
 	 *  @return ByteArray
 	 */
-	public function readBytes(count:Int):ByteArray {
+	public function readBytes(count:Int):Bytes {
 		var cnt = position + count;
 		if (cnt > length) {
 			cnt = cnt - length;
 		}
 
 		if (cnt < 1)
-			throw IoError.Eof;
+			throw new EofException();
 		var data = input.readBytes(cnt);
 		position += data.length;
 		return data;
@@ -67,7 +68,7 @@ class LimitedReader implements ILimitedInput {
 	public function readToEnd():Bytes {
 		var cnt = length - position;
 		if (cnt < 1)
-			throw IoError.Eof;
+			throw new EofException();
 		// TODO: check all is read
 		return readBytes(cnt);
 	}

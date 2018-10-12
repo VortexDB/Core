@@ -7,13 +7,13 @@ class HttpHandler extends Handler {
 	/**
 	 *  On request callback
 	 */
-	private var onRequest:HttpContext->Void;
+	private var onRequest:(HttpContext)->Void;
 
 	/**
 	 *  Constructor
 	 *  @param call - callback on request
 	 */
-	public function new(call:HttpContext->Void) {
+	public function new(call:(HttpContext)->Void) {
 		onRequest = call;
 	}
 

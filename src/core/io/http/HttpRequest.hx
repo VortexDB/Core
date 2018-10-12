@@ -2,6 +2,7 @@ package core.io.http;
 
 import core.io.socket.TcpChannel;
 import core.utils.Uri;
+import core.io.input.LimitedReader;
 
 using StringTools;
 
@@ -42,7 +43,7 @@ class HttpRequest {
 		if (text == null)
 			throw "Connection closed"; // TODO: create internal error class to catch them
 		var line = text.trim();
-		var parts = line.split(" ");
+		var parts:Array<String> = line.split(" ");
 		if (parts.length != 3)
 			throw HttpStatus.BadRequest;
 
@@ -65,7 +66,7 @@ class HttpRequest {
 	 *  Read body
 	 *  @param channel -
 	 */
-	private function readBody(channel:AbstractTcpSocket):Void {
+	private function readBody(channel:TcpChannel):Void {
 		body = null;
 		if (method == HttpMethod.Get)
 			return;
@@ -82,7 +83,7 @@ class HttpRequest {
 	 *  Constructor
 	 *  @param channel -
 	 */
-	public function new(channel:AbstractTcpSocket) {
+	public function new(channel:TcpChannel) {
 		readHeaders(channel);
 		readBody(channel);
 	}
