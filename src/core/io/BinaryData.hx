@@ -227,6 +227,14 @@ class BinaryData {
 	}
 
 	/**
+	 * Add string to buffer
+	 * @param data
+	 */
+	public function addString(data:String) {
+		addBytes(Bytes.ofString(data));
+	}
+
+	/**
 	 * Slice buffer by position and count
 	 * If pos + count more than length then return slice from position to the end of buffer
 	 * @param idx

@@ -51,8 +51,12 @@ class SocketInput implements ISocketInput {
 	 *  Read one byte
 	 *  @return Int
 	 */
-	public function readByte():Int {		
-		return 0;
+	public function readByte():Int {
+		if (readBuffer.isEmpty)
+			channel.read();
+
+		var res = readBuffer.splice(0, 1);
+		return res.get(0);
 	}
 
 	/**
@@ -61,7 +65,8 @@ class SocketInput implements ISocketInput {
 	 *  @return ByteArray
 	 */
 	public function readBytes(count:Int):Bytes {
-		channel.read();
+		if (readBuffer.isEmpty)
+			channel.read();
 		var res = readBuffer.splice(0, count);
 		return res;
 	}

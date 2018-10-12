@@ -1,6 +1,7 @@
 package core.io.http.server;
 
 import core.io.socket.TcpListener;
+import core.io.socket.TcpChannel;
 import core.io.http.server.handler.Handler;
 
 /**
@@ -27,7 +28,7 @@ class HttpServer {
 	 *  @param peer - client peer
 	 *  @param channel - read write channel
 	 */
-	function processClient(channel:AbstractTcpSocket) {
+	function processClient(channel:TcpChannel) {
 		try {
 			while (true) {
 				var request = new HttpRequest(channel);
@@ -71,10 +72,10 @@ class HttpServer {
 	public function bind(host:String, port:Int):Void {
 		if (firstHandler == null)
 			throw new Exception("No handlers");
-		var sock = new TcpSocket();
+		var sock = new TcpListener();
 		this.socket = sock;
 
-		sock.bind(host, port, function(c:TcpSocket) {
+		sock.bind(host, port, (c) -> {
 			processClient(c);
 		});
 	}

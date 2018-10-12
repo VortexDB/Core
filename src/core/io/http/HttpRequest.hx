@@ -1,5 +1,10 @@
 package core.io.http;
 
+import core.io.socket.TcpChannel;
+import core.utils.Uri;
+
+using StringTools;
+
 /**
  *  Request from client
  */
@@ -17,7 +22,7 @@ class HttpRequest {
 	/**
 	 *  Request resource
 	 */
-	public var url:Url;
+	public var url:Uri;
 
 	/**
 	 *  Request headers
@@ -32,7 +37,7 @@ class HttpRequest {
 	/**
 		Read all headers
 	**/
-	private function readHeaders(channel:AbstractTcpSocket):Void {
+	private function readHeaders(channel:TcpChannel):Void {
 		var text = channel.input.readLine();
 		if (text == null)
 			throw "Connection closed"; // TODO: create internal error class to catch them
@@ -40,6 +45,7 @@ class HttpRequest {
 		var parts = line.split(" ");
 		if (parts.length != 3)
 			throw HttpStatus.BadRequest;
+
 		method = parts[0].toUpperCase();
 		url = parts[1];
 

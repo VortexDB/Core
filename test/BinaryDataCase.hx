@@ -71,6 +71,15 @@ class BinaryDataCase {
     }
 
     /**
+	 * Test add string
+	 */
+	public function testAddString() {
+        var binaryData = new BinaryData();
+        binaryData.addString("GOOD");
+        Assert.equals(binaryData.toBytes().toString(), "GOOD");
+    }
+
+    /**
 	 * Test ofBytes
 	 */
 	public function testOfBytes() {

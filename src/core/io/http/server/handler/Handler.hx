@@ -1,4 +1,4 @@
-package core.io.http.server;
+package core.io.http.server.handler;
 
 /**
  *  Handler for request
