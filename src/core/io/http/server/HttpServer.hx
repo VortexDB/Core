@@ -39,8 +39,7 @@ class HttpServer {
 				firstHandler.process(context);
 			}
 		} catch (e:Dynamic) {
-			Log.trace(e);
-			channel.output.close();
+			channel.close();
 		}
 	}
 

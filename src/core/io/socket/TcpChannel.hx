@@ -4,12 +4,18 @@ package core.io.socket;
 import java.nio.channels.SocketChannel;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 
 /**
  *  Channel of TCP socket
  */
 @:allow(core.io.socket.TcpListener)
 class TcpChannel {
+	/**
+	 * Key of selector
+	 */
+	private var key:SelectionKey;
+
 	/**
 	 *  For reading data
 	 */
@@ -42,5 +48,13 @@ class TcpChannel {
         var address = cast(nativeSocket.getRemoteAddress(), InetSocketAddress);        
         peer = new Peer(address.getHostString(), address.getPort());
     }
+
+	/**
+	 * Close channel
+	 */
+	public function close() {
+		input.close();
+		key.cancel();
+	}
 }
 #end

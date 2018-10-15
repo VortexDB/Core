@@ -1,5 +1,6 @@
 package core.io.http;
 
+import core.utils.exceptions.IoException.ConnectionClosed;
 import core.io.socket.TcpChannel;
 import core.utils.Uri;
 import core.io.input.LimitedReader;
@@ -40,9 +41,9 @@ class HttpRequest {
 	**/
 	private function readHeaders(channel:TcpChannel):Void {
 		var text = channel.input.readLine();
-		if (text == null)
-			throw "Connection closed"; // TODO: create internal error class to catch them
-		var line = text.trim();
+		if (text == null || text == "")
+			throw new ConnectionClosed();
+		var line = text.trim();		
 		var parts:Array<String> = line.split(" ");
 		if (parts.length != 3)
 			throw HttpStatus.BadRequest;

@@ -87,7 +87,8 @@ class TcpListener {
 		var clientChannel = server.accept();
 		clientChannel.configureBlocking(false);
 		var channel = new TcpChannel(clientChannel);
-		clientChannel.register(selector, SelectionKey.OP_READ, channel);
+		var clientKey = clientChannel.register(selector, SelectionKey.OP_READ, channel);
+		channel.key = clientKey;
 		Fiber.spawn(() -> {
 			onAccept(channel);
 		});
@@ -99,12 +100,18 @@ class TcpListener {
 	 */
 	private function handleRead(key:SelectionKey) {
 		var socket:SocketChannel = cast key.channel();
-		var channel:TcpChannel = cast key.attachment();
-		this.readBuffer.rewind();
-		var read = socket.read(this.readBuffer);
-		if (read < 1)
-			return;
-		channel.appendRead(readBuffer, read);
+		if (socket.isConnected()) {
+			var channel:TcpChannel = cast key.attachment();
+			try {								
+				this.readBuffer.rewind();
+				var read = socket.read(this.readBuffer);
+				if (read < 1)
+					return;
+				channel.appendRead(readBuffer, read);
+			} catch(e:Dynamic) {
+				channel.close();
+			}
+		}
 	}
 
 	/**
@@ -143,6 +150,9 @@ class TcpListener {
 			while (iter.hasNext()) {
 				var key = iter.next();
 				iter.remove();
+
+				if (!key.isValid())
+					continue;
 
 				if (key.isAcceptable()) {
 					this.handleAccept(key);

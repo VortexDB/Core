@@ -95,25 +95,20 @@ class SocketInput implements ISocketInput {
 	 *  @return String
 	 */
 	public function readLine():String {
-		trace(1);
 		var idx = getNewLineIdx();
-		trace(idx);
-		while (idx < 0) {
-			trace(2);
+		while (idx < 0) {			
 			channel.read();
-			trace(3);
+			idx = getNewLineIdx();
 		}
-
-		trace(4);
+		
 		var res = readBuffer.splice(0, idx).toString();
-		trace(res);
 		return res;
 	}
 
 	/**
 	 *  Close stream
 	 */
-	public inline function close():Void {
+	public function close():Void {
 		this.nativeSocket.close();
 	}
 }
