@@ -1,5 +1,8 @@
 package core.io.socket;
 
+import java.NativeArray;
+import haxe.io.Bytes;
+
 #if java
 import java.nio.channels.SocketChannel;
 import java.net.InetSocketAddress;
@@ -12,39 +15,42 @@ import java.nio.channels.SelectionKey;
 @:allow(core.io.socket.TcpListener)
 class TcpChannel {
 	/**
+	 * Native socket
+	 */
+	private var nativeSocket:SocketChannel;
+
+	/**
 	 * Key of selector
 	 */
 	private var key:SelectionKey;
-
-	/**
-	 *  For reading data
-	 */
-	public final input:SocketInput;
-
-	/**
-	 *  For writing data
-	 */
-	public final output:SocketOutput;
-
+	
 	/**
 	 *  Socket address
 	 */
 	public final peer:Peer;
 
+	/**
+	 * On data callback
+	 */
+	public var onData:(TcpChannel, Bytes)->Void;
+
     /**
-	 * Append buffer to read buffer
+	 * Notify data from source
 	 * @param buffer 
 	 */
-	private function appendRead(buffer:ByteBuffer, count:Int) {
-		input.appendRead(buffer, count);
+	private function notifyData(buffer:ByteBuffer, count:Int) {
+		var arr = new NativeArray(count);
+		buffer.get(arr);
+		var bytes = Bytes.ofData(arr);
+		if (onData != null)
+			onData(this, bytes);
 	}
 
 	/**
 	 * Constructor
 	 */    
 	private function new(nativeSocket:SocketChannel) {
-        input = new SocketInput(nativeSocket);
-        output = new SocketOutput(nativeSocket);
+		this.nativeSocket = nativeSocket;
         var address = cast(nativeSocket.getRemoteAddress(), InetSocketAddress);        
         peer = new Peer(address.getHostString(), address.getPort());
     }
@@ -53,7 +59,7 @@ class TcpChannel {
 	 * Close channel
 	 */
 	public function close() {
-		input.close();
+		nativeSocket.close();
 		key.cancel();
 	}
 }

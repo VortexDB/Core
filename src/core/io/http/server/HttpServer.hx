@@ -31,16 +31,16 @@ class HttpServer {
 	 *  @param channel - read write channel
 	 */
 	function processClient(channel:TcpChannel) {
-		try {
-			while (true) {
-				var request = new HttpRequest(channel);
-				var response = new HttpResponse(channel);
-				var context = new HttpContext(request, response);
-				firstHandler.process(context);
-			}
-		} catch (e:Dynamic) {
+		var request = new HttpRequest(channel);
+		request.read().onSuccess((e) -> {
+			var response = new HttpResponse(channel);
+			var context = new HttpContext(request, response);
+			firstHandler.process(context);
+			processClient(channel);
+		}).onError((e) -> {
+			Log.trace(e);
 			channel.close();
-		}
+		});
 	}
 
 	/**

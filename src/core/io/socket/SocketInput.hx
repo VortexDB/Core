@@ -1,6 +1,6 @@
 package core.io.socket;
 
-import core.async.fiber.Channel;
+import core.async.future.Future;
 import haxe.io.Bytes;
 import core.io.input.ISocketInput;
 
@@ -25,11 +25,6 @@ class SocketInput implements ISocketInput {
 	private final readBuffer:BinaryData;
 
 	/**
-	 * Channel to signal about data
-	 */
-	private final channel:Channel<Bool>;
-
-	/**
 	 * Native socket
 	 */
 	private final nativeSocket:SocketChannel;
@@ -39,8 +34,7 @@ class SocketInput implements ISocketInput {
 	 * @param buffer 
 	 */
 	private function appendRead(buffer:ByteBuffer, count:Int) {
-		readBuffer.addBytesData(buffer.array(), count);	
-		channel.send(true);
+		readBuffer.addBytesData(buffer.array(), count);
 	}
 
 	/**
@@ -63,7 +57,6 @@ class SocketInput implements ISocketInput {
 	private function new(nativeSocket:SocketChannel) {
 		this.nativeSocket = nativeSocket;
 		this.readBuffer = new BinaryData();
-		this.channel = new Channel<Bool>();
 	}
 
 	/**
@@ -71,9 +64,7 @@ class SocketInput implements ISocketInput {
 	 *  @return Int
 	 */
 	public function readByte():Int {
-		if (readBuffer.isEmpty)
-			channel.read();
-
+		
 		var res = readBuffer.splice(0, 1);
 		return res.get(0);
 	}
@@ -84,8 +75,8 @@ class SocketInput implements ISocketInput {
 	 *  @return ByteArray
 	 */
 	public function readBytes(count:Int):Bytes {
-		if (readBuffer.isEmpty)
-			channel.read();
+		
+
 		var res = readBuffer.splice(0, count);
 		return res;
 	}
@@ -96,8 +87,7 @@ class SocketInput implements ISocketInput {
 	 */
 	public function readLine():String {
 		var idx = getNewLineIdx();
-		while (idx < 0) {			
-			channel.read();
+		while (idx < 0) {
 			idx = getNewLineIdx();
 		}
 		

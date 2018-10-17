@@ -1,24 +1,11 @@
 package core.async.future;
 
-import core.async.fiber.Channel;
-import core.async.fiber.Fiber;
-
 /**
- * Execute some code and return a promise of result
+ * Task with promise of result or error
  */
 class Future<T> {
 	/**
-	 * Fiber that executes code
-	 */
-	private final fiber:Fiber;
-
-	/**
-	 * Channel to transfer data
-	 */
-	private final channel:Channel<T>;
-
-	/**
-	 * On error call
+	 * On Error call
 	 */
 	private var onErrorCall:(Dynamic) -> Void;
 
@@ -28,85 +15,71 @@ class Future<T> {
 	private var onSuccessCall:(T) -> Void;
 
 	/**
-	 * Result of future work
+	 * Result of execution
 	 */
-	private var result:T;
+	public var result:T;
 
 	/**
-	 * Error that was catched
+	 * Catched error
 	 */
-	private var error:Dynamic;
+	public var error:Dynamic;
 
 	/**
-	 * Create future and execute it immidiatly
-	 * @return Future<T>
+	 * Create new future and execute it now
 	 */
 	public static function now<T>(call:() -> T):Future<T> {
-		return new Future(call);
+		return new Future<T>(call);
 	}
 
 	/**
-	 * Await all futures and return array of results
-	 * @param futures 
-	 * @return Array<T>
+	 * Execute future
 	 */
-	public static function waitAll<T>(futures:Array<Future<T>>):Array<T> {
-		var res = new Array<T>();
-		for (future in futures) {
-			res.push(future.await());
+	private function execute(call:() -> T) {
+		try {
+			result = call();
+			if (onSuccessCall != null)
+				onSuccessCall(result);
+		} catch (e:Dynamic) {
+			error = e;
+			if (onErrorCall != null) {
+				onErrorCall(e);
+			}
 		}
-
-		return res;
 	}
 
 	/**
 	 * Constructor
+	 * @param call
+	 * @return -> T, ?delay:Int)
 	 */
-	private function new(call:() -> T) {
-		this.channel = new Channel<T>();
-		this.fiber = Fiber.spawn(() -> {
-			try {
-				result = call();
-				if (onSuccessCall != null)
-					onSuccessCall(result);
-			} catch (e:Dynamic) {
-				error = e;
-				if (onErrorCall != null)
-					onErrorCall(e);
-			}
-            channel.send(result);
-		});
+	private function new(call:() -> T, ?delay:Int) {
+		if (delay == null) {
+			execute(call);
+		}
 	}
 
 	/**
-	 * Wait for result
-	 */
-	public function await():T {
-		if (result != null)
-			return result;
-		var res = channel.read();
-		if (error != null)
-			throw error;
-		return res;
-	}
-
-	/**
-	 * Call on success
+	 * Set on success call
 	 * @param call
 	 * @return -> Void)
 	 */
 	public function onSuccess(call:(T) -> Void):Future<T> {
 		onSuccessCall = call;
+		if (result != null)
+			onSuccessCall(result);
+
 		return this;
 	}
 
 	/**
-	 * Call on error
+	 * Set on error call
 	 * @param call
 	 * @return -> Void)
 	 */
-	public function onError(call:(Dynamic) -> Void):Future<T> {
+	public function onError(call:(Dynamic) -> Void) {
 		onErrorCall = call;
-		return this;
+
+		if (error != null)
+			onErrorCall(error);
 	}
 }

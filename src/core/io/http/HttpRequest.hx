@@ -1,5 +1,7 @@
 package core.io.http;
 
+import core.async.future.Future;
+import haxe.io.Bytes;
 import core.utils.exceptions.IoException.ConnectionClosed;
 import core.io.socket.TcpChannel;
 import core.utils.Uri;
@@ -11,6 +13,11 @@ using StringTools;
  *  Request from client
  */
 class HttpRequest {
+	/**
+	 * Channel for client
+	 */
+	private final channel:TcpChannel;
+
 	/**
 	 *  Version
 	 */
@@ -32,9 +39,9 @@ class HttpRequest {
 	public var headers(default, null):Map<String, String>;
 
 	/**
-	 *  Request body
+	 *  Buffer for incoming data
 	 */
-	public var body:LimitedReader;
+	public var buffer:BinaryData;
 
 	/**
 		Read all headers
@@ -81,11 +88,31 @@ class HttpRequest {
 	}
 
 	/**
+	 * Process on data from channel
+	 * @param data 
+	 */
+	private function onData(channel:TcpChannel, data:Bytes) {
+
+	}
+
+	/**
 	 *  Constructor
 	 *  @param channel -
 	 */
 	public function new(channel:TcpChannel) {
-		readHeaders(channel);
-		readBody(channel);
+		this.channel = channel;
+		channel.onData = onData;
+	}
+
+	/**
+	 * Read from request
+	 * @return Future<Bool>
+	 */
+	public function read():Future<Bool> {
+		future = Future.now(() -> {
+			return true;
+		});
+
+		return future;
 	}
 }

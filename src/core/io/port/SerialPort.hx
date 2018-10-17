@@ -1,6 +1,5 @@
 package core.io.port;
 
-import core.async.fiber.Channel;
 import java.vm.Thread;
 import java.NativeArray;
 import haxe.io.Bytes;
@@ -53,8 +52,7 @@ class InternalSerialPortDataListener implements com.fazecast.jSerialComm.SerialP
         var array = new NativeArray<java.types.Int8>(bytesAvail);
         owner.port.readBytes(array, array.length);
         var res = Bytes.ofData(array);
-        owner.buffer.addBytes(res);				
-		owner.channel.send(true);
+        owner.buffer.addBytes(res);
     }
 }
 
@@ -124,11 +122,6 @@ class SerialPort {
 	private final buffer:BinaryData;
 
 	/**
-	 * Channel to transfer data to read method
-	 */
-	private final channel:Channel<Bool>;
-
-	/**
 	 * Avalable data count in buffer
 	 */
 	public var available(get, never):Int;
@@ -153,7 +146,6 @@ class SerialPort {
 	 * @param name
 	 */
 	public function new(name:String, ?speed:Int, ?byteType:ByteTypeSettings) {
-		this.channel = new Channel<Bool>();
 		this.name = name;
 		this.speed = speed != null ? speed : DEFAULT_SPEED;
 		this.byteType = byteType != null ? byteType : DEFAULT_BYTETYPE;
@@ -178,7 +170,6 @@ class SerialPort {
 	 * @return Bytes
 	 */
 	public function read(?timeout:Int):Bytes {
-		channel.read(timeout);
 		var res = buffer.toBytes();
 		buffer.clear();
 		return res;

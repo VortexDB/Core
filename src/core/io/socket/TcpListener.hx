@@ -1,6 +1,5 @@
 package core.io.socket;
 
-import core.async.fiber.Fiber;
 import java.NativeArray;
 import haxe.io.Bytes;
 import java.net.InetSocketAddress;
@@ -89,9 +88,7 @@ class TcpListener {
 		var channel = new TcpChannel(clientChannel);
 		var clientKey = clientChannel.register(selector, SelectionKey.OP_READ, channel);
 		channel.key = clientKey;
-		Fiber.spawn(() -> {
-			onAccept(channel);
-		});
+		onAccept(channel);
 	}
 
 	/**
@@ -107,7 +104,7 @@ class TcpListener {
 				var read = socket.read(this.readBuffer);
 				if (read < 1)
 					return;
-				channel.appendRead(readBuffer, read);
+				channel.notifyData(readBuffer, read);
 			} catch(e:Dynamic) {
 				channel.close();
 			}
