@@ -23,7 +23,7 @@ class FutureCase {
      * Test future on success
      */
     public function testOnSuccess() {
-        Future.now(() -> {
+        Future.sync(() -> {
 			return 99;
 		}).onSuccess((e) -> {
 			Assert.equals(e, 99);

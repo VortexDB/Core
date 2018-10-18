@@ -98,8 +98,15 @@ class BinaryData {
 	}
 
 	/**
+	 * Return BinaryData from string
+	 */
+	public static function ofString(data:String):BinaryData {
+		return BinaryData.ofBytes(Bytes.ofString(data));
+	}
+
+	/**
 	 * Creates BinaryData from array of byte
-	 * @param data 
+	 * @param data
 	 * @return BinaryData
 	 */
 	public static function ofArray(data:Array<Int>):BinaryData {
@@ -186,6 +193,34 @@ class BinaryData {
 	}
 
 	/**
+	 * Get string line from position.
+	 * Returns line and end position of line
+	 * @param pos
+	 * @return String
+	 */
+	public function getLine(pos:Int):Null<{text:String, endPos:Int}> {
+		var endPos = -1;
+		for (i in pos...buffer.length) {
+			var b = buffer.get(i);
+			if (b == 0x0A) {
+				if (i == pos) {
+					pos += 1;
+				} else {
+					endPos = i;
+					break;
+				}
+			}
+		}
+
+		if (endPos <= 0)
+			return null;
+
+		var len = endPos - pos;
+		var str = buffer.getString(pos, len);
+		return {text: str, endPos: endPos};
+	}
+
+	/**
 	 *  Add Int32 to the end of buffer
 	 *  @param data - Int32 data
 	 */
@@ -205,7 +240,7 @@ class BinaryData {
 		var cnt = count == null ? data.length : count;
 		prepareSize(cnt);
 		buffer.blit(length, data, 0, cnt);
-		length += cnt;		
+		length += cnt;
 	}
 
 	/**
@@ -252,15 +287,15 @@ class BinaryData {
 
 	/**
 	 * Cut data from buffer
-	 * @param pos 
-	 * @param count 
+	 * @param pos
+	 * @param count
 	 * @return BinaryData
 	 */
 	public function splice(pos:Int, count:Int):Bytes {
 		if (pos >= length)
 			throw new Exception("Out of bound");
-		
-		var res = slice(pos, count);		
+
+		var res = slice(pos, count);
 		var cpPos = pos + res.length;
 		if (cpPos >= length) {
 			length = length - res.length;
@@ -269,7 +304,7 @@ class BinaryData {
 			buffer.blit(pos, part, 0, part.length);
 			length = pos + part.length;
 		}
-		
+
 		return res;
 	}
 

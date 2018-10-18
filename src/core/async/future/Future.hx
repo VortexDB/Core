@@ -15,6 +15,11 @@ class Future<T> {
 	private var onSuccessCall:(T) -> Void;
 
 	/**
+	 * Block that be executed in future
+	 */
+	private var call:() -> T;
+
+	/**
 	 * Result of execution
 	 */
 	public var result:T;
@@ -25,37 +30,19 @@ class Future<T> {
 	public var error:Dynamic;
 
 	/**
-	 * Create new future and execute it now
+	 * Create new future and execute it now sync
 	 */
-	public static function now<T>(call:() -> T):Future<T> {
-		return new Future<T>(call);
-	}
-
-	/**
-	 * Execute future
-	 */
-	private function execute(call:() -> T) {
-		try {
-			result = call();
-			if (onSuccessCall != null)
-				onSuccessCall(result);
-		} catch (e:Dynamic) {
-			error = e;
-			if (onErrorCall != null) {
-				onErrorCall(e);
-			}
-		}
+	public static function sync<T>(call:() -> T):Future<T> {
+		return new SyncFuture<T>(call);
 	}
 
 	/**
 	 * Constructor
-	 * @param call
-	 * @return -> T, ?delay:Int)
+	 * @param call 
+	 * @return -> T)
 	 */
-	private function new(call:() -> T, ?delay:Int) {
-		if (delay == null) {
-			execute(call);
-		}
+	public function new(call:() -> T) {
+		this.call = call;
 	}
 
 	/**
@@ -80,6 +67,73 @@ class Future<T> {
 		onErrorCall = call;
 
 		if (error != null)
+			onErrorCall(error);
+	}
+}
+
+/**
+ * Task with promise of result or error
+ */
+@:allow(core.async.future.Future)
+class SyncFuture<T> extends Future<T> {	
+	/**
+	 * Execute future
+	 */
+	private function execute(call:() -> T) {
+		try {
+			result = call();
+			if (onSuccessCall != null)
+				onSuccessCall(result);
+		} catch (e:Dynamic) {
+			error = e;
+			if (onErrorCall != null) {
+				onErrorCall(e);
+			}
+		}
+	}
+
+	/**
+	 * Constructor
+	 * @param call
+	 * @return -> T, ?delay:Int)
+	 */
+	private function new(call:() -> T) {
+		super(call);
+		execute(call);
+	}	
+}
+
+/**
+ * Future that completed manual
+ */
+class CompletionFuture<T> extends Future<T> {	
+	/**
+	 * Constructor
+	 * @param call 
+	 * @return -> T)
+	 */
+	public function new() {
+		super(null);
+	}
+
+	/**
+	 * Complete future with result
+	 * @param result 
+	 */
+	public function complete(result:T) {
+		this.result = result;
+
+		if (onSuccessCall != null)
+			onSuccessCall(result);
+	}
+
+	/**
+	 * Complete with error
+	 * @param result 
+	 */
+	public function throwError(error:Dynamic) {
+		this.error = error;
+		if (onErrorCall != null)
 			onErrorCall(error);
 	}
 }
