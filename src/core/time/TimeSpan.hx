@@ -46,6 +46,15 @@ abstract TimeSpan(__TimeSpan) from __TimeSpan to __TimeSpan {
 	}
 
 	/**
+	 * Create TimeSpan from milliseconds
+	 */
+	public static function fromMSeconds(ms:Int) {
+		return new TimeSpan({
+			nanoseconds: ms * DateTime.NANOSECONDS_PER_MSECOND
+		});
+	}
+
+	/**
 	 * Add one TimeSpan to another TimeSpan
 	 * @param a
 	 * @param b

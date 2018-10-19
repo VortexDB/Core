@@ -38,7 +38,7 @@ class Future<T> {
 
 	/**
 	 * Constructor
-	 * @param call 
+	 * @param call
 	 * @return -> T)
 	 */
 	public function new(call:() -> T) {
@@ -51,9 +51,17 @@ class Future<T> {
 	 * @return -> Void)
 	 */
 	public function onSuccess(call:(T) -> Void):Future<T> {
+		// TODO: catch error
 		onSuccessCall = call;
-		if (result != null)
-			onSuccessCall(result);
+		if (result != null) {
+			try {
+				onSuccessCall(result);
+			} catch (e:Dynamic) {
+				error = e;
+				if (onErrorCall != null)
+					onErrorCall(e);
+			}
+		}
 
 		return this;
 	}
@@ -75,7 +83,7 @@ class Future<T> {
  * Task with promise of result or error
  */
 @:allow(core.async.future.Future)
-class SyncFuture<T> extends Future<T> {	
+class SyncFuture<T> extends Future<T> {
 	/**
 	 * Execute future
 	 */
@@ -100,16 +108,16 @@ class SyncFuture<T> extends Future<T> {
 	private function new(call:() -> T) {
 		super(call);
 		execute(call);
-	}	
+	}
 }
 
 /**
  * Future that completed manual
  */
-class CompletionFuture<T> extends Future<T> {	
+class CompletionFuture<T> extends Future<T> {
 	/**
 	 * Constructor
-	 * @param call 
+	 * @param call
 	 * @return -> T)
 	 */
 	public function new() {
@@ -118,7 +126,7 @@ class CompletionFuture<T> extends Future<T> {
 
 	/**
 	 * Complete future with result
-	 * @param result 
+	 * @param result
 	 */
 	public function complete(result:T) {
 		this.result = result;
@@ -129,7 +137,7 @@ class CompletionFuture<T> extends Future<T> {
 
 	/**
 	 * Complete with error
-	 * @param result 
+	 * @param result
 	 */
 	public function throwError(error:Dynamic) {
 		this.error = error;

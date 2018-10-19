@@ -1,6 +1,7 @@
 package core.async.stream;
 
 import core.async.future.Future;
+import core.time.TimeSpan;
 
 /**
  * State of stream
@@ -66,23 +67,23 @@ class Stream<T> {
 		state = StreamState.Work;
 	}
 
-    /**
-     * Create new stream with checking timeout between data receive
-     * @param mseconds 
-     * @return Stream<T>
-     */
-    public function timeout(mseconds:Int):Stream<T> {
-        var res = new StreamController<T>();
-        // TODO: timer
+	/**
+	 * Create new stream with checking timeout between data receive
+	 * @param mseconds
+	 * @return Stream<T>
+	 */
+	public function timeout(time:TimeSpan):Stream<T> {
+		var res = new StreamController<T>();
+		// TODO: timer
 
-        listen((e) -> {
+		listen((e) -> {
 			res.add(e);
 		}, (ex) -> {}, () -> {
 			res.close();
 		});
 
-        return res.stream;
-    }
+		return res.stream;
+	}
 
 	/**
 	 * Create new from element
@@ -118,6 +119,9 @@ class Stream<T> {
 		return completer;
 	}
 
+	/**
+	 * Constructor
+	 */
 	private function new() {
 		state = StreamState.Init;
 	}

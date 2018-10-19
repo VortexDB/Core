@@ -36,6 +36,11 @@ abstract DateTime(LocalDateTime) from LocalDateTime to LocalDateTime {
 	public static inline var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
 
 	/**
+	 * Nanoseconds count in one milisecond
+	 */
+	public static inline var NANOSECONDS_PER_MSECOND = 1000000;
+
+	/**
 	 * Nanoseconds count in one second
 	 */
 	public static inline var NANOSECONDS_PER_SECOND = 1000000000;

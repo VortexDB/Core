@@ -182,5 +182,6 @@ class SerialPort {
     public function close() {
         port.removeDataListener();
         port.closePort();
+		dataController.close();
     }
 }
