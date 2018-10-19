@@ -1,5 +1,7 @@
 package core.async.stream;
 
+import core.utils.exceptions.TimeoutExeption.TimeoutException;
+import haxe.Timer;
 import core.async.future.Future;
 import core.time.TimeSpan;
 
@@ -25,6 +27,11 @@ class Stream<T> {
 	private var onData:(T) -> Void;
 
 	/**
+	 * On error call
+	 */
+	private var onError:(Dynamic) -> Void;
+
+	/**
 	 * On done call
 	 */
 	private var onDone:() -> Void;
@@ -36,6 +43,15 @@ class Stream<T> {
 	private function add(value:T) {
 		if (onData != null)
 			onData(value);
+	}
+
+	/**
+	 * Add exception
+	 * @param e 
+	 */
+	public function addError(e:Dynamic) {
+		if (onError != null)
+			onError(e);
 	}
 
 	/**
@@ -74,12 +90,20 @@ class Stream<T> {
 	 */
 	public function timeout(time:TimeSpan):Stream<T> {
 		var res = new StreamController<T>();
-		// TODO: timer
+		var timer = Timer.delay(() -> {
+			// Notify about timeout
+			res.addError(new TimeoutException("Stream timeout"));
+		},Math.floor(time.totalMilliseconds));
 
 		listen((e) -> {
+			timer.stop();
 			res.add(e);
-		}, (ex) -> {}, () -> {
-			res.close();
+			timer.run();
+		}, (ex) -> {
+			res.addError(ex);
+		}, () -> {
+			res.close();			
+			timer.stop();
 		});
 
 		return res.stream;

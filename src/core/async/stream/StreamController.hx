@@ -25,6 +25,14 @@ class StreamController<T> {
     }
 
 	/**
+	 * Add exception
+	 * @param e 
+	 */
+	public function addError(e:Dynamic) {
+		stream.addError(e);
+	}
+
+	/**
 	 * Close stream
 	 */
 	public function close():Void {
