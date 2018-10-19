@@ -1,9 +1,10 @@
 package core.io.port;
 
-import java.vm.Thread;
 import java.NativeArray;
 import haxe.io.Bytes;
-import core.utils.exceptions.TimeoutExeption;
+import core.async.stream.Stream;
+import core.async.stream.StreamController;
+
 
 /**
  * Alias to native port
@@ -52,7 +53,7 @@ class InternalSerialPortDataListener implements com.fazecast.jSerialComm.SerialP
         var array = new NativeArray<java.types.Int8>(bytesAvail);
         owner.port.readBytes(array, array.length);
         var res = Bytes.ofData(array);
-        owner.buffer.addBytes(res);
+        owner.dataController.add(res);
     }
 }
 
@@ -99,6 +100,11 @@ class SerialPort {
 	private final port:NativePort;
 
 	/**
+	 * Controller for data stream
+	 */
+	private final dataController:StreamController<Bytes>;
+
+	/**
 	 * Name of serial port
 	 * COM2, COM10, /dev/tty0
 	 */
@@ -114,20 +120,12 @@ class SerialPort {
 	 * Byte type
 	 * 8N1, 8O1, 8E2
 	 */
-	public final byteType:ByteTypeSettings;
+	public final byteType:ByteTypeSettings;	
 
 	/**
-	 * Buffer for incoming data
+	 * Stream for data
 	 */
-	private final buffer:BinaryData;
-
-	/**
-	 * Avalable data count in buffer
-	 */
-	public var available(get, never):Int;
-	public function get_available():Int {
-		return buffer.length;
-	}
+	public final onData:Stream<Bytes>;
 
 	/**
 	 * Return serial port list names
@@ -149,9 +147,10 @@ class SerialPort {
 		this.name = name;
 		this.speed = speed != null ? speed : DEFAULT_SPEED;
 		this.byteType = byteType != null ? byteType : DEFAULT_BYTETYPE;
-		this.buffer = new BinaryData();
+		this.dataController = new StreamController<Bytes>();
+		this.onData = this.dataController.stream;
 
-		port = NativePort.getCommPort(name);		
+		port = NativePort.getCommPort(name);
 	}
 
     /**
@@ -164,16 +163,6 @@ class SerialPort {
         stream.write(bytes);
         stream.flush();
     }
-
-	/**
-	 * Read data
-	 * @return Bytes
-	 */
-	public function read(?timeout:Int):Bytes {
-		var res = buffer.toBytes();
-		buffer.clear();
-		return res;
-	}
 
 	/**
 	 * Open serial port
