@@ -1,5 +1,7 @@
 package core.io.http;
 
+import core.async.stream.Stream;
+import core.async.stream.StreamController;
 import core.async.future.Future;
 import haxe.io.Bytes;
 import core.utils.exceptions.IoException.ConnectionClosed;
@@ -27,11 +29,6 @@ class HttpRequest {
 	private final channel:TcpChannel;
 
 	/**
-	 * For completion
-	 */
-	private var completion:CompletionFuture<HttpRequest>;
-
-	/**
 	 * State of reading
 	 */
 	private var state:RequestReadState = RequestReadState.Headers;
@@ -44,7 +41,12 @@ class HttpRequest {
 	/**
 	 *  Buffer for incoming data
 	 */
-	private var buffer:BinaryData;
+	private var buffer:BinaryData;	
+
+	/**
+	 * On data controller
+	 */
+	private final onDataController:StreamController<HttpRequest>;
 
 	/**
 	 *  Version
@@ -72,10 +74,15 @@ class HttpRequest {
 	public var body(default, null):Bytes;	
 
 	/**
+	 * On request stream
+	 */
+	public final onData:Stream<HttpRequest>;
+
+	/**
 	 * Return next line from buffer
 	 */
 	private function nextLine():String {
-		var line = buffer.getLine(0);
+		var line = buffer.getLine(linePos);
 		if (line == null)
 			return null;
 
@@ -91,7 +98,7 @@ class HttpRequest {
 		if (text == null || text == "")
 			return false;
 
-		var line = text.trim();
+		var line = text.trim();		
 		var parts:Array<String> = line.split(" ");
 		if (parts.length != 3)
 			// TODO: exception
@@ -107,7 +114,7 @@ class HttpRequest {
 			var head = line.split(": ");
 			if (head.length < 2)
 				// TODO: exception
-				throw HttpStatus.BadRequest;
+				throw HttpStatus.BadRequest;				
 			headers[head[0]] = head[1];
 			line = nextLine().trim();
 		}
@@ -142,7 +149,7 @@ class HttpRequest {
 	 * Process on data from channel
 	 * @param data
 	 */
-	private function onData(channel:TcpChannel, data:Bytes) {
+	private function onBytesData(data:Bytes) {
 		buffer.addBytes(data);
 
 		if (state == Headers) {
@@ -155,7 +162,7 @@ class HttpRequest {
 
 		if (state == Body) {
 			if (readBody()) {
-				completion.complete(this);
+				onDataController.add(this);
 			}
 		}
 
@@ -170,16 +177,10 @@ class HttpRequest {
 	 */
 	public function new(channel:TcpChannel) {
 		linePos = 0;
+		this.buffer = new BinaryData();
 		this.channel = channel;
-		channel.onData = onData;
-	}
-
-	/**
-	 * Read from request
-	 * @return Future<Bool>
-	 */
-	public function read():Future<HttpRequest> {
-		completion = new CompletionFuture<HttpRequest>();
-		return completion;
+		this.onDataController = new StreamController<HttpRequest>();
+		this.onData = this.onDataController.stream;
+		channel.onData.listen(onBytesData);
 	}
 }

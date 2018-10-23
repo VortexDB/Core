@@ -1,5 +1,6 @@
 package core.io.socket;
 
+import haxe.CallStack;
 import java.NativeArray;
 import haxe.io.Bytes;
 import java.net.InetSocketAddress;
@@ -101,11 +102,13 @@ class TcpListener {
 			var channel:TcpChannel = cast key.attachment();
 			try {								
 				this.readBuffer.rewind();
-				var read = socket.read(this.readBuffer);
+				var read = socket.read(this.readBuffer);				
 				if (read < 1)
 					return;
 				channel.notifyData(readBuffer, read);
 			} catch(e:Dynamic) {
+				trace(e);
+				trace(CallStack.toString(CallStack.callStack()));
 				channel.close();
 			}
 		}

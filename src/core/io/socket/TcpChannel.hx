@@ -2,6 +2,8 @@ package core.io.socket;
 
 import java.NativeArray;
 import haxe.io.Bytes;
+import core.async.stream.Stream;
+import core.async.stream.StreamController;
 
 #if java
 import java.nio.channels.SocketChannel;
@@ -25,25 +27,32 @@ class TcpChannel {
 	private var key:SelectionKey;
 	
 	/**
+	 * For on data stream
+	 */
+	private final onDataController:StreamController<Bytes>;
+
+	/**
 	 *  Socket address
 	 */
 	public final peer:Peer;
 
 	/**
-	 * On data callback
+	 * Data stream
 	 */
-	public var onData:(TcpChannel, Bytes)->Void;
+	public final onData:Stream<Bytes>;	
+
+	/**
+	 * For output data
+	 */
+	public var output:SocketOutput;
 
     /**
 	 * Notify data from source
 	 * @param buffer 
 	 */
 	private function notifyData(buffer:ByteBuffer, count:Int) {
-		var arr = new NativeArray(count);
-		buffer.get(arr);
-		var bytes = Bytes.ofData(arr);
-		if (onData != null)
-			onData(this, bytes);
+		var bytes = @:privateAccess new Bytes(count, buffer.array());
+		onDataController.add(bytes);
 	}
 
 	/**
@@ -51,8 +60,11 @@ class TcpChannel {
 	 */    
 	private function new(nativeSocket:SocketChannel) {
 		this.nativeSocket = nativeSocket;
+		this.output = new SocketOutput(this.nativeSocket);
+		this.onDataController = new StreamController<Bytes>();
+		this.onData = this.onDataController.stream;
         var address = cast(nativeSocket.getRemoteAddress(), InetSocketAddress);        
-        peer = new Peer(address.getHostString(), address.getPort());
+        peer = new Peer(address.getHostString(), address.getPort());		
     }
 
 	/**
@@ -61,6 +73,7 @@ class TcpChannel {
 	public function close() {
 		nativeSocket.close();
 		key.cancel();
+		onDataController.close();
 	}
 }
 #end

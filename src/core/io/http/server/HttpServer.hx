@@ -32,12 +32,11 @@ class HttpServer {
 	 */
 	function processClient(channel:TcpChannel) {
 		var request = new HttpRequest(channel);
-		request.read().onSuccess((_) -> {
+		request.onData.listen((req) -> {
 			var response = new HttpResponse(channel);
-			var context = new HttpContext(request, response);
+			var context = new HttpContext(req, response);
 			firstHandler.process(context);
-			processClient(channel);
-		}).onError((e) -> {
+		}, (e) -> {
 			Log.trace(e);
 			channel.close();
 		});
