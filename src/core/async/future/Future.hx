@@ -15,6 +15,11 @@ class Future<T> {
 	private var onSuccessCall:(T) -> Void;
 
 	/**
+	 * On complete call
+	 */
+	private var onCompleteCall:(Future<T>) -> Void;
+
+	/**
 	 * Block that be executed in future
 	 */
 	private var call:() -> T;
@@ -61,6 +66,13 @@ class Future<T> {
 				if (onErrorCall != null)
 					onErrorCall(e);
 			}
+
+			try {
+				if (onCompleteCall != null)
+					onCompleteCall(this);
+			} catch (ex:Dynamic) {
+				// Ignore
+			}
 		}
 
 		return this;
@@ -71,11 +83,28 @@ class Future<T> {
 	 * @param call
 	 * @return -> Void)
 	 */
-	public function onError(call:(Dynamic) -> Void) {
+	public function onError(call:(Dynamic) -> Void):Future<T> {
 		onErrorCall = call;
 
-		if (error != null)
+		if (error != null) {
 			onErrorCall(error);
+			if (onCompleteCall != null)
+				onCompleteCall(this);
+		}
+
+		return this;
+	}
+
+	/**
+	 * On complete future call(success or not)
+	 * @param call
+	 * @return -> Void)
+	 */
+	public function onComplete(call:(Future<T>) -> Void) {
+		onCompleteCall = call;
+		if (result != null || error != null) {
+			onCompleteCall(this);
+		}
 	}
 }
 

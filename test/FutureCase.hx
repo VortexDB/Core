@@ -22,11 +22,26 @@ class FutureCase {
     /**
      * Test future on success
      */
-    public function testOnSuccess() {
+    public function testFuture() {
         Future.sync(() -> {
 			return 99;
 		}).onSuccess((e) -> {
 			Assert.equals(e, 99);
-		});
+		}).onComplete((s) -> {
+            Assert.equals(s.result, 99);
+        });
+    }
+
+    /**
+     * Test future on success
+     */
+    public function testOnErrorComplete() {
+        Future.sync(() -> {
+			throw "Error";
+		}).onError((e) -> {
+			Assert.equals(e, "Error");
+		}).onComplete((s) -> {
+            Assert.equals(s.error, "Error");
+        });
     }
 }
