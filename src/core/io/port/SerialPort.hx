@@ -1,10 +1,12 @@
 package core.io.port;
 
+import haxe.Timer;
+import java.vm.Thread;
 import java.NativeArray;
 import haxe.io.Bytes;
+import core.async.future.Future;
 import core.async.stream.Stream;
 import core.async.stream.StreamController;
-
 
 /**
  * Alias to native port
@@ -20,17 +22,17 @@ typedef OnSerialPortDataCall = (SerialPort, Bytes) -> Void;
  * Data listener
  */
 class InternalSerialPortDataListener implements com.fazecast.jSerialComm.SerialPortDataListener {
-    /**
-     * Referrence to serial port
-     */
-    private final owner:SerialPort;
+	/**
+	 * Referrence to serial port
+	 */
+	private final owner:SerialPort;
 
 	/**
 	 * Constructor
 	 */
 	public function new(owner:SerialPort) {
-        this.owner = owner;
-    }
+		this.owner = owner;
+	}
 
 	/**
 	 * Listen for data available
@@ -42,19 +44,19 @@ class InternalSerialPortDataListener implements com.fazecast.jSerialComm.SerialP
 
 	/**
 	 * Process event
-	 * @param event 
+	 * @param event
 	 */
-	public function serialEvent(event:com.fazecast.jSerialComm.SerialPortEvent):Void {		
-        // Ignore everything except Data available
-        if (event.getEventType() != NativePort.LISTENING_EVENT_DATA_AVAILABLE)
-            return;
+	public function serialEvent(event:com.fazecast.jSerialComm.SerialPortEvent):Void {
+		// Ignore everything except Data available
+		if (event.getEventType() != NativePort.LISTENING_EVENT_DATA_AVAILABLE)
+			return;
 
-        var bytesAvail = owner.port.bytesAvailable();
-        var array = new NativeArray<java.types.Int8>(bytesAvail);
-        owner.port.readBytes(array, array.length);
-        var res = Bytes.ofData(array);
-        owner.dataController.add(res);
-    }
+		var bytesAvail = owner.port.bytesAvailable();
+		var array = new NativeArray<java.types.Int8>(bytesAvail);
+		owner.port.readBytes(array, array.length);
+		var res = Bytes.ofData(array);
+		owner.dataController.add(res);
+	}
 }
 
 /**
@@ -84,19 +86,19 @@ class SerialPort {
 		stopBits: 1
 	};
 
-    /**
-     * Timeout on read bytes in milliseconds
-     */
-    public static inline var READ_TIMEOUT = 1000;
+	/**
+	 * Timeout on read bytes in milliseconds
+	 */
+	public static inline var READ_TIMEOUT = 1000;
 
-    /**
-     * Timeout on read bytes in milliseconds
-     */
-    public static inline var WRITE_TIMEOUT = 300;
+	/**
+	 * Timeout on read bytes in milliseconds
+	 */
+	public static inline var WRITE_TIMEOUT = 300;
 
 	/**
 	 * Native serial port
-	 */    
+	 */
 	private final port:NativePort;
 
 	/**
@@ -120,7 +122,7 @@ class SerialPort {
 	 * Byte type
 	 * 8N1, 8O1, 8E2
 	 */
-	public final byteType:ByteTypeSettings;	
+	public final byteType:ByteTypeSettings;
 
 	/**
 	 * Stream for data
@@ -132,7 +134,7 @@ class SerialPort {
 	 * @return Array<String>
 	 */
 	public static function getPorts():Array<String> {
-        // TODO: make better convert native array to array
+		// TODO: make better convert native array to array
 		var res = new Array<String>();
 		for (item in NativePort.getCommPorts())
 			res.push(item.getSystemPortName());
@@ -153,16 +155,17 @@ class SerialPort {
 		port = NativePort.getCommPort(name);
 	}
 
-    /**
-     * Write data to port
-     * @param data 
-     */
-    public function write(data:Bytes) {
-        var bytes = data.getData();
-        var stream = port.getOutputStream();
-        stream.write(bytes);
-        stream.flush();
-    }
+	/**
+	 * Write data to port
+	 * @param data
+	 */
+	public function write(data:Bytes) {
+		var bytes = data.getData();
+		var stream = port.getOutputStream();
+
+		stream.write(bytes);
+		stream.flush();
+	}
 
 	/**
 	 * Open serial port
@@ -172,16 +175,29 @@ class SerialPort {
 			return;
 
 		port.setBaudRate(speed);
-        port.addDataListener(new InternalSerialPortDataListener(this));
+		port.addDataListener(new InternalSerialPortDataListener(this));
 		port.openPort(0);
 	}
 
-    /**
-     * Close port
-     */
-    public function close() {
-        port.removeDataListener();
-        port.closePort();
-		dataController.close();
-    }
+	/**
+	 * Close port
+	 */
+	public function close():Future<Bool> {
+		var completer = new CompletionFuture<Bool>();
+		// BUG of serial port library
+		Timer.delay(()
+			-> {
+				try {
+					// port.removeDataListener();
+					port.closePort();
+					dataController.close();
+					completer.complete(true);
+				} catch (ex:Dynamic) {
+					trace(ex);
+					completer.throwError(ex);
+				}
+			}, 1);
+
+		return completer;
+	}
 }
