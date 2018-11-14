@@ -1,5 +1,10 @@
 package core.io.http.server.handler;
 
+import sys.io.File;
+import sys.FileSystem;
+import core.utils.exceptions.Exception;
+import core.mime.MimeTypes;
+
 /**
  *  Process static content
  */
@@ -21,7 +26,7 @@ class StaticHandler extends Handler {
 	 *  @param path - relative path from working dir
 	 */
 	public function addPath(path:String) {
-		if (!Path.exists(path))
+		if (!FileSystem.exists(path))
 			throw new Exception('Directory ${path} not exists');
 		var parts = path.split("/");
 		var parts = parts.filter(function(s:String) {
@@ -47,12 +52,12 @@ class StaticHandler extends Handler {
 
 		if (paths.exists(first)) {
 			var fl = './${newPath}/${fileName}';
-			if (Path.exists(fl)) {
+			if (FileSystem.exists(fl)) {
 				var mime = MimeTypes.getMimeType(fileName);
 				context.response.headers[HttpHeaderType.ContentType] = mime;
 
-				var file = new File(fl);
-				var data = file.readAllBytes(fl);
+				// TODO: async file?
+				var data = File.getBytes(fl);
 				context.response.writeBytes(data);
 				context.response.close();
 			} else {

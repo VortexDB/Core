@@ -19,6 +19,7 @@ class Test {
 		runner.addCase(new SerialPortCase());
 		runner.addCase(new FutureCase());
 		runner.addCase(new BinaryDataCase());
+		runner.addCase(new UriCase());
 		Report.create(runner);
 		runner.run();
 	}
