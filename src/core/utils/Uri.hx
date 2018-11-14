@@ -2,6 +2,7 @@ package core.utils;
 
 /**
  * Uniform Resource Identifier based on string
+ * https://tools.ietf.org/html/rfc3986#appendix-B
  */
 @:forward
 abstract Uri(UrlFields) {
