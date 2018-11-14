@@ -98,7 +98,7 @@ class HttpRequest {
 		if (text == null || text == "")
 			return false;
 
-		var line = text.trim();		
+		var line = text.trim();
 		var parts:Array<String> = line.split(" ");
 		if (parts.length != 3)
 			// TODO: exception
@@ -162,7 +162,9 @@ class HttpRequest {
 
 		if (state == Body) {
 			if (readBody()) {
-				onDataController.add(this);
+				buffer.clear();
+				state = Headers;
+				onDataController.add(this);				
 			}
 		}
 

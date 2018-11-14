@@ -1,5 +1,7 @@
 package core.io.http.server;
 
+import java.vm.Thread;
+import haxe.CallStack;
 import haxe.Log;
 import core.utils.exceptions.Exception;
 import core.io.socket.TcpListener;
@@ -26,39 +28,55 @@ class HttpServer {
 	var lastHandler:Handler;
 
 	/**
+	 * Process unexpected error
+	 * @param channel
+	 * @param exception
+	 */
+	private function processUnhandledError(channel:TcpChannel, exception:Dynamic) {
+		trace('Unexpected error: ${exception}');
+		//trace(CallStack.toString(CallStack.callStack()));
+		channel.close();
+	}
+
+	/**
 	 *  Process client requests
 	 *  @param peer - client peer
 	 *  @param channel - read write channel
 	 */
-	function processClient(channel:TcpChannel) {
+	private function processClient(channel:TcpChannel) {
 		var request = new HttpRequest(channel);
-		request.onData.listen((req) -> {
-			var response = new HttpResponse(channel);
-			var context = new HttpContext(req, response);
-			firstHandler.process(context);
-		}, (e) -> {
-			Log.trace(e);
-			channel.close();
-		});
+		request.onData.listen((req)
+			-> {
+				var response = new HttpResponse(channel);
+				var context = new HttpContext(req, response);
+				try {
+					firstHandler.process(context);
+				} catch (ex:Dynamic) {
+					processUnhandledError(channel, ex);
+				}
+			},
+			(ex)
+			-> {
+				processUnhandledError(channel, ex);
+			});
 	}
 
 	/**
 	 *  Constructor
 	 */
-	public function new() {}
-
-	/**
+	public function new() {} /**
 	 *  Add http request handler
 	 *  @param handler - request handler
 	 */
+
 	public function addHandler(handler:Handler):Void {
 		if (firstHandler == null) {
 			firstHandler = handler;
 			lastHandler = handler;
+		} else {
+			lastHandler.next = handler;
+			lastHandler = handler;
 		}
-
-		lastHandler.Next = handler;
-		lastHandler = handler;
 	}
 
 	/**

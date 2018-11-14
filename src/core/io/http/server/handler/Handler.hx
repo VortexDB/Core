@@ -7,7 +7,7 @@ class Handler {
 	/**
 	 *  Next handler
 	 */
-	public var Next:Handler;
+	public var next:Handler;
 
 	/**
 	 *  Process request, for override
@@ -20,10 +20,10 @@ class Handler {
 	 *  Call next handler
 	 */
 	public function callNext(context:HttpContext) {
-		if (Next != null) {
-			Next.process(context);
+		if (next != null) {
+			next.process(context);
 		} else {
-			// Not found
+			throw HttpStatus.NotFound;
 		}
 	}
 }

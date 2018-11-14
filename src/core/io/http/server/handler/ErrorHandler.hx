@@ -45,7 +45,6 @@ class ErrorHandler extends Handler {
 		} catch (e:HttpStatus) {
 			processError(context, e);
 		} catch (e:Dynamic) {
-			// TODO: log error somewhere
 			processError(context, HttpStatus.Internal);
 		}
 	}

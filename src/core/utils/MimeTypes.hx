@@ -53,7 +53,7 @@ class MimeTypes {
 	 *  Get MIME type for file name
 	 */
 	public static function getMimeType(path:String):String {
-		var ext = Path.extension(path);
+		var ext = Path.extension(path);		
 		var res = "application/octet-stream";
 		switch (ext) {
 			case "bas", "cc", "conf", "cpp", "c", "c++", "cxx", "def", "f77", "f90", "for", "f", "g", "hh", "h", "idc", "java", "jav", "list", "log", "lst", "mar", "m", "pl", "sdml", "text", "txt":
@@ -1087,7 +1087,6 @@ class MimeTypes {
 			case "zsh":
 				res = "text/x-script.zsh";
 		}
-
 		return res;
 	}
 }
