@@ -3,7 +3,7 @@ package core.io.http.server.handler;
 import sys.io.File;
 import sys.FileSystem;
 import core.utils.exceptions.Exception;
-import core.mime.MimeTypes;
+import core.utils.MimeTypes;
 
 /**
  *  Process static content

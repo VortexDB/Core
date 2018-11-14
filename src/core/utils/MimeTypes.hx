@@ -1,4 +1,4 @@
-package core.mime;
+package core.utils;
 
 import haxe.io.Path;
 
