@@ -33,7 +33,7 @@ class HttpResponse implements ISocketOutput {
 	 */
 	private function writeHeaders() {
 		headers[HttpHeaderType.ContentLength] = Std.string(buffer.length);
-		headers[HttpHeaderType.Server] = "immortal";
+		headers[HttpHeaderType.Server] = "Immortal";
 
 		for (k in headers.keys()) {
 			var v = headers.get(k);

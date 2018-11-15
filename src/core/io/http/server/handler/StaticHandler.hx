@@ -3,6 +3,9 @@ package core.io.http.server.handler;
 import haxe.io.Path;
 import sys.io.File;
 import sys.FileSystem;
+
+using StringTools;
+
 import core.utils.exceptions.Exception;
 import core.utils.MimeTypes;
 
@@ -16,16 +19,44 @@ class StaticHandler extends Handler {
 	public var paths:Map<String, String>;
 
 	/**
+	 * Strip path
+	 * @param src 
+	 * @return String
+	 */
+	private function stripPath(path:String):String {
+		var parts = path.split("/");
+		var parts = parts.filter((s:String) -> {
+			return s != "/" && s != "" && s != "." && s != "..";
+		});
+		return Path.join(parts);
+	}
+
+	/**
 	 * Add single path
+	 * @param path - path in http request
+	 * @param dir - relative directory on disk
+	 */
+	private function addPathInternal(path:String, dir:String) {
+		path = stripPath(path);
+		dir = stripPath(dir);
+		paths.set(path, dir);
+	}
+
+	/**
+	 * Add path with recurse
+	 * @param basePath
+	 * @param baseDir
 	 * @param path
 	 */
-	private function addPathInternal(path:String) {
-		var parts = path.split("/");
-		var parts = parts.filter(function(s:String) {
-			return s != "" && s != "." && s != "..";
-		});
-		var newPath = parts.join("/");
-		paths.set(newPath, newPath);
+	private function addPathRecurseInternal(basePath:String, baseDir:String, dir:String) {
+		for (file in FileSystem.readDirectory(dir)) {
+			var dirPath = Path.join([dir, file]);
+			if (FileSystem.exists(dirPath) && FileSystem.isDirectory(dirPath)) {
+				var fixPath = dirPath.replace(baseDir, basePath);
+				addPathInternal(fixPath, dirPath);
+				addPathRecurseInternal(basePath, baseDir, dirPath);
+			}
+		}
 	}
 
 	/**
@@ -36,23 +67,22 @@ class StaticHandler extends Handler {
 	}
 
 	/**
-	 *  Add path that can be processed
-	 *  @param path - relative path from working dir
+	 * Add path that can be processed
+	 * @param path - path in http request
+	 * @param dir - relative directory on disk
+	 * @param recursive - add recursive directories
 	 */
-	public function addPath(path:String, recursive:Bool = true) {
-		if (!FileSystem.exists(path))
-			throw new Exception('Directory ${path} not exists');
+	public function addPath(path:String, dir:String, recursive:Bool = true) {
+		if (!FileSystem.exists(dir))
+			throw new Exception('Directory ${dir} not exists');
 
-		addPathInternal(path);
+		addPathInternal(path, dir);
 
 		if (recursive) {
-			for (file in FileSystem.readDirectory(path)) {
-				var filePath = Path.join([path, file]);
-				if (FileSystem.exists(filePath) && FileSystem.isDirectory(filePath)) {
-					addPath(filePath, recursive);
-				}
-			}
+			addPathRecurseInternal(path, dir, dir);
 		}
+
+		trace(paths);
 	}
 
 	/**
@@ -69,8 +99,11 @@ class StaticHandler extends Handler {
 		});
 
 		var newPath = parts.join("/");
+		trace(newPath);
 		if (paths.exists(newPath)) {
-			var fl = './${newPath}/${fileName}';
+			var dir = paths.get(newPath);
+			var fl = './${dir}/${fileName}';
+			trace(fl);
 			if (FileSystem.exists(fl)) {
 				var mime = MimeTypes.getMimeType(fileName);
 				context.response.headers[HttpHeaderType.ContentType] = mime;
