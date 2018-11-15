@@ -79,6 +79,7 @@ class Stream<T> {
 		}
 
 		this.onData = onData;
+		this.onError = onError;
 		this.onDone = onDone;
 		state = StreamState.Work;
 	}

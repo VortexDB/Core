@@ -5,6 +5,7 @@ import sys.io.File;
 import sys.FileSystem;
 
 using StringTools;
+using DateTools;
 
 import core.utils.exceptions.Exception;
 import core.utils.MimeTypes;
@@ -14,18 +15,23 @@ import core.utils.MimeTypes;
  */
 class StaticHandler extends Handler {
 	/**
+	 * Files with modified time
+	 */
+	private var modifiedMap = new Map<String, String>();
+
+	/**
 	 *  Paths to process
 	 */
 	public var paths:Map<String, String>;
 
 	/**
 	 * Strip path
-	 * @param src 
+	 * @param src
 	 * @return String
 	 */
 	private function stripPath(path:String):String {
 		var parts = path.split("/");
-		var parts = parts.filter((s:String) -> {
+		var parts = parts.filter((s : String) -> {
 			return s != "/" && s != "" && s != "." && s != "..";
 		});
 		return Path.join(parts);
@@ -100,17 +106,29 @@ class StaticHandler extends Handler {
 
 		var newPath = parts.join("/");
 		trace(newPath);
-		if (paths.exists(newPath)) {
+		var dir = paths.get(newPath);
+		if (dir != null) {
 			var dir = paths.get(newPath);
 			var fl = './${dir}/${fileName}';
 			trace(fl);
 			if (FileSystem.exists(fl)) {
 				var mime = MimeTypes.getMimeType(fileName);
-				context.response.headers[HttpHeaderType.ContentType] = mime;
+				var fileStat = FileSystem.stat(fl);
 
-				// TODO: async file?
-				var data = File.getBytes(fl);
-				context.response.writeBytes(data);
+				var storedModified = modifiedMap.get(fl);
+				var modified = fileStat.mtime.format("%a, %d %b %Y %H:%M:%S GMT");
+				if (modified == storedModified) {
+					context.response.status = HttpStatus.NotModified;
+				} else {
+					context.response.headers[HttpHeaderType.ContentType] = mime;
+					context.response.headers[HttpHeaderType.Date] = fileStat.ctime.format("%a, %d %b %Y %H:%M:%S GMT");
+					context.response.headers[HttpHeaderType.LastModified] = modified;
+					// TODO: async file?
+					var data = File.getBytes(fl);
+					context.response.writeBytes(data);
+					modifiedMap[fl] = modified;
+				}
+
 				context.response.close();
 			} else {
 				// TODO: exception

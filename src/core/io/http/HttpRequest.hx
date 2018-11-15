@@ -41,7 +41,7 @@ class HttpRequest {
 	/**
 	 *  Buffer for incoming data
 	 */
-	private var buffer:BinaryData;	
+	private var buffer:BinaryData;
 
 	/**
 	 * On data controller
@@ -71,7 +71,7 @@ class HttpRequest {
 	/**
 	 * Body of request
 	 */
-	public var body(default, null):Bytes;	
+	public var body(default, null):Bytes;
 
 	/**
 	 * On request stream
@@ -87,36 +87,44 @@ class HttpRequest {
 			return null;
 
 		linePos = line.endPos + 1;
-		return line.text;
+		return line.text.trim();
 	}
 
 	/**
 		Read all headers
 	**/
 	private function readHeaders():Bool {
-		var text = nextLine().trim();
-		if (text == null || text == "")
+		var line = nextLine();
+		if (line == null || line == "")
 			return false;
 
-		var line = text.trim();
 		var parts:Array<String> = line.split(" ");
-		if (parts.length != 3)
+		if (parts.length != 3) {
+			trace("BAD REQUEST 1");
 			// TODO: exception
 			throw HttpStatus.BadRequest;
+		}
 
 		method = parts[0].toUpperCase();
 		url = parts[1];
 
 		headers = new Map<String, String>();
 
-		line = nextLine().trim();
+		line = nextLine();
+		if (line == null)
+			return false;
+
 		while (line.length > 0) {
 			var head = line.split(": ");
-			if (head.length < 2)
+			if (head.length < 2) {
 				// TODO: exception
-				throw HttpStatus.BadRequest;				
+				trace("BAD REQUEST 2");
+				throw HttpStatus.BadRequest;
+			}
 			headers[head[0]] = head[1];
-			line = nextLine().trim();
+			line = nextLine();
+			if (line == null)
+				return false;
 		}
 
 		return true;
@@ -150,27 +158,27 @@ class HttpRequest {
 	 * @param data
 	 */
 	private function onBytesData(data:Bytes) {
-		buffer.addBytes(data);
+		try {
+			buffer.addBytes(data);
 
-		if (state == Headers) {
-			if (readHeaders()) {
-				state = Body;
-			} else {
-				return;
+			if (state == Headers) {
+				if (readHeaders()) {
+					state = Body;
+				} else {
+					return;
+				}
 			}
-		}
 
-		if (state == Body) {
-			if (readBody()) {
-				buffer.clear();
-				state = Headers;
-				onDataController.add(this);				
+			if (state == Body) {
+				if (readBody()) {
+					buffer.clear();
+					state = Headers;
+					onDataController.add(this);
+				}
 			}
+		} catch (ex:Dynamic) {
+			onDataController.addError(ex);
 		}
-
-		// read header
-		// read body
-		// notify
 	}
 
 	/**

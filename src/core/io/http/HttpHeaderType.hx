@@ -113,6 +113,15 @@ abstract HttpHeaderType (String) from String to String {
 
     // TODO : more headers
 
+    /**
+     * The Last-Modified response HTTP header contains the date and time 
+     * at which the origin server believes the resource was last modified. 
+     * It is used as a validator to determine if a resource received or stored is the same. 
+     * Less accurate than an ETag header, it is a fallback mechanism. 
+     * Conditional requests containing If-Modified-Since or 
+     * If-Unmodified-Since headers make use of this field.
+     */
+    var LastModified = "Last-Modified";
 
     /**
      *  Ask the server to upgrade to another protocol.

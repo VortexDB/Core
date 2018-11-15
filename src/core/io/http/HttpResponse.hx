@@ -94,5 +94,6 @@ class HttpResponse implements ISocketOutput {
 		channel.output.writeString('HTTP/1.1 ${status} ${descr}\n');
 		writeHeaders();
 		channel.output.writeBytes(buffer.toBytes());
+		buffer.clear();
 	}
 }

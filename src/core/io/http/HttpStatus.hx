@@ -11,6 +11,11 @@ abstract HttpStatus(Int) {
     var Ok = 200;
 
     /**
+     * File not modified
+     */
+    var NotModified = 304;
+
+    /**
      *  Server internal error
      */
     var Internal = 500;

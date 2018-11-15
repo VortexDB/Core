@@ -54,6 +54,7 @@ class HttpServer {
 				} catch (ex:Dynamic) {
 					processUnhandledError(channel, ex);
 				}
+				channel.close();
 			},
 			(ex)
 			-> {
