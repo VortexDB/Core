@@ -1,10 +1,9 @@
-package core.io.http.websocket;
+package core.io.websocket;
 
 /**
  *  Web socket frame types
  */
 @:enum
-@:native("t.FrameType")
 abstract FrameType(Int) from Int to Int {
 	var Continue = 0x00;
 	var Text = 0x01;

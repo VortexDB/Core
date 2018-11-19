@@ -169,4 +169,18 @@ class BinaryDataCase {
 		Assert.equals(line.text, "Morning");
 		Assert.equals(line.endPos, 12);
 	}
+
+	/**
+	 * Test alloc
+	 */
+	public function testAlloc() {
+		var binary = BinaryData.alloc(3);
+		binary.setByte(0, 0x31);
+		binary.setByte(1, 0x32);
+		binary.setByte(2, 0x33);
+		Assert.equals(binary.length, 3);
+		Assert.equals(binary.getByte(0), 0x31);
+		Assert.equals(binary.getByte(1), 0x32);
+		Assert.equals(binary.getByte(2), 0x33);
+	}
 }

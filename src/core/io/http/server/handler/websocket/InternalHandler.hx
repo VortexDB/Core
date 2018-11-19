@@ -1,5 +1,11 @@
 package core.io.http.server.handler.websocket;
 
+import haxe.io.Bytes;
+import haxe.crypto.BaseCode;
+import haxe.crypto.Base64;
+import haxe.crypto.Sha1;
+import core.io.websocket.FrameType;
+
 /**
  *  State of work
 **/
@@ -33,7 +39,7 @@ enum WorkState {
 /**
  *  Handle websocket data
 **/
-class InternalHandler implements IByteWriteable {
+class InternalHandler {
 	/**
 	 *  Message mask size
 	**/
@@ -205,13 +211,13 @@ class InternalHandler implements IByteWriteable {
 				{
 					var mask = binaryData.slice(0, MASK_SIZE);
 					var data = binaryData.slice(MASK_SIZE, binaryData.length - MASK_SIZE);
-					var res = new ByteArray(data.length);
+					var res = BinaryData.alloc(data.length);
 
 					for (i in 0...data.length) {
 						var j = i % 4;
 						var b = data.get(i);
 						var d = b ^ mask.get(j);
-						res.set(i, d);
+						res.setByte(i, d);
 					}
 
 					// On data

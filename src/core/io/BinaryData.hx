@@ -118,6 +118,18 @@ class BinaryData {
 	}
 
 	/**
+	 * Alloc binary data
+	 * @param length 
+	 * @return BinaryData
+	 */
+	public static function alloc(length:Int):BinaryData {
+		var res = new BinaryData();
+		res.resize(length);
+		res.length = length;
+		return res;
+	}
+
+	/**
 	 *  Create new Binary Data with prealloced length
 	 */
 	public function new() {
