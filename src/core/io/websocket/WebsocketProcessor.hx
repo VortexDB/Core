@@ -1,5 +1,10 @@
-package core.io.http.server.handler.websocket;
+package core.io.websocket;
 
+import core.io.output.ISocketOutput;
+import core.io.socket.Peer;
+import core.async.stream.StreamController;
+import core.async.stream.Stream;
+import core.io.socket.TcpChannel;
 import haxe.io.Bytes;
 import haxe.crypto.BaseCode;
 import haxe.crypto.Base64;
@@ -37,9 +42,68 @@ enum WorkState {
 }
 
 /**
- *  Handle websocket data
+ * Abstract event of websocket channel
+ */
+class WSChannelEvent {
+	/**
+	 * Client peer
+	 */
+	public final peer:Peer;
+
+	/**
+	 * Constructor
+	 */
+	public function new(peer:Peer) {
+		this.peer = peer;
+	}
+}
+
+/**
+ * Websocket error event
+ */
+class WSErrorEvent extends WSChannelEvent {
+	/**
+	 * Error
+	 */
+	public final error:Dynamic;
+
+	/**
+	 * Constructor
+	 */
+	public function new(peer:Peer, error:Dynamic) {
+		super(peer);
+		this.error = error;
+	}
+}
+
+/**
+ * On connect event
+ */
+class WSConnectEvent extends WSChannelEvent {
+	/**
+	 * Socket output
+	 */
+	public final output:ISocketOutput;
+
+	/**
+	 * Constructor
+	 */
+	public function new(peer:Peer, output:ISocketOutput) {
+		super(peer);
+		this.output = output;
+	}
+}
+
+/**
+ * On close vent
+ */
+class WSCloseEvent extends WSChannelEvent {
+}
+
+/**
+ * Websocket processor over TcpChannel for using in HttpServer or TcpServer
 **/
-class InternalHandler {
+class WebsocketProcessor {
 	/**
 	 *  Message mask size
 	**/
@@ -71,14 +135,9 @@ class InternalHandler {
 	static inline var WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 	/**
-	 *  Client peer
-	**/
-	var peer:Peer;
-
-	/**
 	 *  Channel for data IO
 	**/
-	var channel:AbstractTcpSocket;
+	var channel:TcpChannel;
 
 	/**
 	 *  State of handler
@@ -101,24 +160,14 @@ class InternalHandler {
 	var packLen:Int;
 
 	/**
-	 *  On connect callback
-	**/
-	public var onConnect:OnWSConnect;
+	 * Controller for event
+	 */
+	private final onEventController:StreamController<WSChannelEvent>;
 
 	/**
-	 *  On normal web socket close
-	**/
-	public var onClose:OnWSClose;
-
-	/**
-	 *  On data callback
-	**/
-	public var onData:OnWSData;
-
-	/**
-	 *  On error callback
-	**/
-	public var onError:OnWSError;
+	 * Events stream
+	 */
+	public final onEvent:Stream<WSChannelEvent>;
 
 	/**
 	 *  Decode hex string to Bytes
@@ -132,10 +181,8 @@ class InternalHandler {
 	/**
 	 *  Send error through OnError
 	**/
-	private function pushError(e:Dynamic) {
-		if (onError != null) {
-			onError(peer, e);
-		}
+	private function pushError(error:Dynamic) {
+		onEventController.add(new WSErrorEvent(channel.peer, error));
 	}
 
 	/**
@@ -153,7 +200,7 @@ class InternalHandler {
 		stringBuffer.add("\r\n");
 		channel.output.writeString(stringBuffer.toString());
 		state = WorkState.TypeFrame;
-		onConnect(peer, this);
+		onEventController.add(new WSConnectEvent(channel.peer, channel.output));
 	}
 
 	/**
@@ -168,6 +215,7 @@ class InternalHandler {
 		var len = binaryData.get(1);
 		packLen = 0;
 		if ((len & 0x80) < 1)
+			// TODO: exception
 			throw "Only masked message allowed";
 		packLen += len ^ 0x80;
 
@@ -188,6 +236,7 @@ class InternalHandler {
 		} else if (packLen == EIGHT_BYTE_BODY_SIZE) {
 			// var binaryData = BinaryData.FromBytes (_socket.input.read (8));
 		} else {
+			// TODO: exception
 			throw "Wrong length type";
 		}
 
@@ -203,9 +252,9 @@ class InternalHandler {
 		switch (frameType) {
 			case FrameType.Close:
 				{
-					onClose(null);
+					onEventController.add(new WSCloseEvent(channel.peer));
 					state = WorkState.Close;
-					Disconnect();
+					disconnect();
 				}
 			case FrameType.Text | FrameType.Binary:
 				{
@@ -221,10 +270,11 @@ class InternalHandler {
 					}
 
 					// On data
-					onData(peer, res, this);
+					onData(channel.peer, res, this);
 					state = WorkState.TypeFrame;
 				}
 			default:
+				// TODO: exception
 				throw "Unknown frame";
 		}
 	}
@@ -232,47 +282,51 @@ class InternalHandler {
 	/**
 	 *  Disconnect connection
 	**/
-	private function Disconnect() {
+	private function disconnect() {
 		try {
-			channel.output.close();
+			channel.close();
 		} catch (e:Dynamic) {
 			trace(e);
 		}
 	}
 
 	/**
-	 *  Constructor
-	 *  @param context - http context
+	 * Process data from client channel
+	 * @param data
 	 */
-	public function new(context:HttpContext) {
-		channel = context.response.channel;
-		headers = context.request.headers;
+	private function processChannelData(data:Bytes) {
+		switch (state) {
+			case WorkState.Handshake:
+				processHandshake();
+			case WorkState.TypeFrame:
+				processFrame();
+			case WorkState.Length:
+				processLength();
+			case WorkState.Data:
+				processData();
+			case WorkState.Close:
+				// TODO: notify about close
+				trace("Websocket closed");
+		}
+	}
+
+	/**
+	 *  Constructor
+	 */
+	public function new(channel:TcpChannel, headers:Map<String, String>) {
+		this.channel = channel;
+		this.headers = headers;
 		state = WorkState.Handshake;
+
+		onEventController = new StreamController<WSChannelEvent>();
+		onEvent = onEventController.stream;
 	}
 
 	/**
 	 *  Start to process data from client
 	**/
 	public function start():Void {
-		try {
-			while (true) {
-				switch (state) {
-					case WorkState.Handshake:
-						processHandshake();
-					case WorkState.TypeFrame:
-						processFrame();
-					case WorkState.Length:
-						processLength();
-					case WorkState.Data:
-						processData();
-					case WorkState.Close:
-						break;
-				}
-			}
-		} catch (e:Dynamic) {
-			pushError(e);
-			Disconnect();
-		}
+		channel.onData.listen(processChannelData);
 	}
 
 	/**
@@ -288,19 +342,19 @@ class InternalHandler {
 	 *  @param data - byte array
 	 *  @return Number of bytes written
 	 */
-	public function writeBytes(data:ByteArray):Int {
-		var frame = new ByteArray(2 + data.length);
-		frame.set(0, 0x80 + FrameType.Binary); // FIN, BINARY
-		frame.set(1, data.length);
+	public function writeBytes(data:BinaryData):Int {
+		var frame = BinaryData.alloc(2 + data.length);
+		frame.setByte(0, 0x80 + FrameType.Binary); // FIN, BINARY
+		frame.setByte(1, data.length);
 		ByteArray.copy(frame, data, 2, 0, data.length);
-		return channel.output.writeBytes(frame);
+		return channel.output.writeBytes(frame.toBytes());
 	}
 
 	/**
 	 *  Write string
 	**/
 	public function writeString(data:String):Void {
-		var dat = ByteArray.fromString(data);
+		var dat = BinaryData.ofString(data);
 		writeBytes(dat);
 	}
 
@@ -308,6 +362,6 @@ class InternalHandler {
 	 *  Close socket
 	**/
 	public function close():Void {
-		channel.output.close();
+		channel.close();
 	}
 }
