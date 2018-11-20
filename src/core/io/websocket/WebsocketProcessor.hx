@@ -101,6 +101,24 @@ class WSCloseEvent extends WSChannelEvent {
 }
 
 /**
+ * On data event
+ */
+class WSDataEvent extends WSChannelEvent {
+	/**
+	 * Socket output
+	 */
+	public final data:Bytes;
+
+	/**
+	 * Constructor
+	 */
+	public function new(peer:Peer, data:Bytes) {
+		super(peer);
+		this.data = data;
+	}
+}
+
+/**
  * Websocket processor over TcpChannel for using in HttpServer or TcpServer
 **/
 class WebsocketProcessor {
@@ -165,6 +183,11 @@ class WebsocketProcessor {
 	private final onEventController:StreamController<WSChannelEvent>;
 
 	/**
+	 * Buffer for incoming data
+	 */
+	private final buffer:BinaryData;
+
+	/**
 	 * Events stream
 	 */
 	public final onEvent:Stream<WSChannelEvent>;
@@ -207,12 +230,14 @@ class WebsocketProcessor {
 	 *  Process frame type, opcode, mask, len part
 	**/
 	private function processFrame():Void {
-		var binaryData = channel.input.readBytes(2);
-		var frame = binaryData.get(0);
+		if (buffer.length < 2)
+			return;
+
+		var frame = buffer.getByte(0);
 
 		frameType = frame & 0x0F;
 
-		var len = binaryData.get(1);
+		var len = buffer.getByte(1);
 		packLen = 0;
 		if ((len & 0x80) < 1)
 			// TODO: exception
@@ -231,8 +256,9 @@ class WebsocketProcessor {
 	**/
 	private function processLength():Void {
 		if (packLen == TWO_BYTE_BODY_SIZE) {
-			var binaryData = channel.input.readBytes(2);
-			packLen += binaryData.get(0);
+			if (buffer.length < 4)
+				return;			
+			packLen += buffer.getByte(3);
 		} else if (packLen == EIGHT_BYTE_BODY_SIZE) {
 			// var binaryData = BinaryData.FromBytes (_socket.input.read (8));
 		} else {
@@ -247,7 +273,8 @@ class WebsocketProcessor {
 	 *  Process data
 	**/
 	private function processData():Void {
-		var binaryData = channel.input.readBytes(packLen + MASK_SIZE);
+		if (buffer.length < 4 + packLen + MASK_SIZE)
+			return;
 
 		switch (frameType) {
 			case FrameType.Close:
@@ -258,8 +285,8 @@ class WebsocketProcessor {
 				}
 			case FrameType.Text | FrameType.Binary:
 				{
-					var mask = binaryData.slice(0, MASK_SIZE);
-					var data = binaryData.slice(MASK_SIZE, binaryData.length - MASK_SIZE);
+					var mask = buffer.slice(4, MASK_SIZE);
+					var data = buffer.slice(4 + MASK_SIZE, 4 + buffer.length - MASK_SIZE);
 					var res = BinaryData.alloc(data.length);
 
 					for (i in 0...data.length) {
@@ -270,7 +297,7 @@ class WebsocketProcessor {
 					}
 
 					// On data
-					onData(channel.peer, res, this);
+					onEventController.add(new WSDataEvent(channel.peer, res.toBytes()));
 					state = WorkState.TypeFrame;
 				}
 			default:
@@ -295,6 +322,7 @@ class WebsocketProcessor {
 	 * @param data
 	 */
 	private function processChannelData(data:Bytes) {
+		buffer.addBytes(data);
 		switch (state) {
 			case WorkState.Handshake:
 				processHandshake();
@@ -318,6 +346,7 @@ class WebsocketProcessor {
 		this.headers = headers;
 		state = WorkState.Handshake;
 
+		buffer = new BinaryData();
 		onEventController = new StreamController<WSChannelEvent>();
 		onEvent = onEventController.stream;
 	}
@@ -343,10 +372,10 @@ class WebsocketProcessor {
 	 *  @return Number of bytes written
 	 */
 	public function writeBytes(data:BinaryData):Int {
-		var frame = BinaryData.alloc(2 + data.length);
+		var frame = BinaryData.alloc(2);
 		frame.setByte(0, 0x80 + FrameType.Binary); // FIN, BINARY
 		frame.setByte(1, data.length);
-		ByteArray.copy(frame, data, 2, 0, data.length);
+		frame.addBinaryData(data);
 		return channel.output.writeBytes(frame.toBytes());
 	}
 

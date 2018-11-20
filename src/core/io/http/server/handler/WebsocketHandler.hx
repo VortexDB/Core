@@ -1,5 +1,7 @@
 package core.io.http.server.handler.websocket;
 
+import core.async.stream.StreamController;
+import core.async.stream.Stream;
 import core.io.websocket.WebsocketProcessor;
 
 /**
@@ -7,9 +9,21 @@ import core.io.websocket.WebsocketProcessor;
  */
 class WebSocketHandler extends Handler {
 	/**
+	 * Controller for onEvent
+	 */
+	private final onEventController:StreamController<WSChannelEvent>;
+
+	/**
+	 * Stream with events
+	 */
+	public final onEvent:Stream<WSChannelEvent>;
+
+	/**
 	 *  Constructor
 	 */
 	public function new() {
+		onEventController = new StreamController<WSChannelEvent>();
+		onEvent = onEventController.stream;
 	}
 
 	/**
@@ -18,8 +32,11 @@ class WebSocketHandler extends Handler {
 	 */
 	public override function process(context:HttpContext):Void {
 		if (context.request.headers.exists(HttpHeaderType.Upgrade)) {
-			var ih = new WebsocketProcessor(context.response.channel, context.request.headers);
-			ih.start();
+			var wsprocessor = new WebsocketProcessor(context.response.channel, context.request.headers);
+			wsprocessor.onEvent.listen((event) -> {
+				onEventController.add(event);
+			});
+			wsprocessor.start();
 		} else {
 			callNext(context);
 		}
